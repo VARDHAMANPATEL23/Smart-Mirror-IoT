@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Widget } from "@/components/dashboard/Widget";
 import { ClockWidget } from "@/components/widgets/ClockWidget";
@@ -9,21 +9,13 @@ import { TasksWidget } from "@/components/widgets/TasksWidget";
 import { AiContentWidget } from "@/components/widgets/AiContentWidget";
 import { VoiceTranscriptWidget } from "@/components/widgets/VoiceTranscriptWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
+import { NewsWidget } from "@/components/widgets/NewsWidget";
 
 interface WidgetData {
   id: string;
   type: string;
   size: "1x1" | "2x1" | "2x2";
 }
-
-const WIDGET_REGISTRY: Record<string, React.ReactNode> = {
-  project_title: <ProjectTitleWidget />,
-  clock:         <ClockWidget />,
-  weather:       <WeatherWidget />,
-  tasks:         <TasksWidget />,
-  ai:            <AiContentWidget />,
-  voice:         <VoiceTranscriptWidget />,
-};
 
 const SIZE_CLASSES: Record<string, string> = {
   "1x1": "col-span-1 row-span-1",
@@ -35,8 +27,19 @@ export default function MirrorDisplay() {
   const { mirrorId } = useParams<{ mirrorId: string }>();
   const router = useRouter();
   const [widgets, setWidgets] = useState<WidgetData[]>([]);
+  const [aiBackendUrl, setAiBackendUrl] = useState<string>("");
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
+
+  const WIDGET_REGISTRY = useMemo(() => ({
+    project_title: <ProjectTitleWidget />,
+    clock:         <ClockWidget />,
+    weather:       <WeatherWidget />,
+    tasks:         <TasksWidget mirrorId={mirrorId} />,
+    ai:            <AiContentWidget mirrorId={mirrorId} aiBackendUrl={aiBackendUrl} />,
+    voice:         <VoiceTranscriptWidget />,
+    news:          <NewsWidget />,
+  }), [mirrorId, aiBackendUrl]);
 
   useEffect(() => {
     // Guard: if not authenticated, redirect to rpi-login
@@ -53,8 +56,9 @@ export default function MirrorDisplay() {
 
     es.onmessage = (e) => {
       try {
-        const layout: WidgetData[] = JSON.parse(e.data);
-        setWidgets(layout);
+        const data = JSON.parse(e.data);
+        if (data.layout) setWidgets(data.layout);
+        if (data.aiBackendUrl) setAiBackendUrl(data.aiBackendUrl);
       } catch {
         // ignore malformed messages
       }
@@ -93,7 +97,7 @@ export default function MirrorDisplay() {
               <div key={widget.id} className={SIZE_CLASSES[widget.size]}>
                 <Widget id={widget.id} title={widget.type}>
                   <div className="flex h-full min-h-full flex-col w-full overflow-hidden">
-                    {WIDGET_REGISTRY[widget.type]}
+                    {(WIDGET_REGISTRY as any)[widget.type]}
                   </div>
                 </Widget>
               </div>

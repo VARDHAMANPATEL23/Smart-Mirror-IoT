@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   if (!mirror)
     return NextResponse.json({ message: "Mirror not found" }, { status: 404 });
 
-  return NextResponse.json({ layout: mirror.layout });
+  return NextResponse.json({ layout: mirror.layout, aiBackendUrl: mirror.aiBackendUrl });
 }
 
 // POST /api/layout  — publish new layout (requires user session)
@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
   if (!mirror)
     return NextResponse.json({ message: "Mirror not found or not owned by you" }, { status: 404 });
 
-  // Notify SSE listeners for this mirrorId
-  layoutEventEmitter.emit(mirrorId, layout);
+  // Notify SSE listeners for this mirrorId with full mirror object
+  layoutEventEmitter.emit(mirrorId, mirror);
 
   return NextResponse.json({ message: "Layout published", layout: mirror.layout });
 }

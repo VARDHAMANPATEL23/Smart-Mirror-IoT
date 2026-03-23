@@ -26,6 +26,7 @@ import { TasksWidget } from "@/components/widgets/TasksWidget";
 import { AiContentWidget } from "@/components/widgets/AiContentWidget";
 import { VoiceTranscriptWidget } from "@/components/widgets/VoiceTranscriptWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
+import { NewsWidget } from "@/components/widgets/NewsWidget";
 
 // Mirror dimensions — match page.tsx exactly
 const MIRROR_W = 560;
@@ -41,9 +42,10 @@ const WIDGET_REGISTRY: Record<string, { label: string; node: React.ReactNode }> 
   project_title: { label: "Project Title", node: <ProjectTitleWidget /> },
   clock:         { label: "Clock",         node: <ClockWidget /> },
   weather:       { label: "Weather",       node: <WeatherWidget /> },
-  tasks:         { label: "Tasks",         node: <TasksWidget /> },
+  tasks:         { label: "Tasks",         node: <TasksWidget isBuilder={true} /> },
   ai:            { label: "AI Content",    node: <AiContentWidget /> },
   voice:         { label: "Voice Transcript", node: <VoiceTranscriptWidget /> },
+  news:          { label: "Latest News",   node: <NewsWidget /> },
 };
 
 const SIZE_CLASSES: Record<string, string> = {
@@ -66,6 +68,7 @@ const DEFAULT_SIZE: Record<string, "1x1" | "2x1" | "2x2"> = {
   project_title: "2x1",
   tasks: "2x1",
   voice: "2x1",
+  news: "2x1",
 };
 
 const initialLayout: WidgetData[] = [
