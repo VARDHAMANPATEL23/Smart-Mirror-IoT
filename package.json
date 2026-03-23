@@ -1,0 +1,9 @@
+{
+  "name": "smart-mirror-root",
+  "private": true,
+  "scripts": {
+    "dev": "bun --cwd frontend run dev",
+    "build": "bun --cwd frontend run build",
+    "install:all": "bun install --cwd frontend && bun install --cwd backend"
+  }
+}
