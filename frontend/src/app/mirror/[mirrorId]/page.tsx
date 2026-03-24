@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Widget } from "@/components/dashboard/Widget";
 import { ClockWidget } from "@/components/widgets/ClockWidget";
 import { WeatherWidget } from "@/components/widgets/WeatherWidget";
 import { TasksWidget } from "@/components/widgets/TasksWidget";
-import { AiContentWidget } from "@/components/widgets/AiContentWidget";
-import { VoiceTranscriptWidget } from "@/components/widgets/VoiceTranscriptWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
 import { NewsWidget } from "@/components/widgets/NewsWidget";
 
@@ -27,7 +25,6 @@ export default function MirrorDisplay() {
   const { mirrorId } = useParams<{ mirrorId: string }>();
   const router = useRouter();
   const [widgets, setWidgets] = useState<WidgetData[]>([]);
-  const [aiBackendUrl, setAiBackendUrl] = useState<string>("");
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,10 +33,8 @@ export default function MirrorDisplay() {
     clock:         <ClockWidget />,
     weather:       <WeatherWidget />,
     tasks:         <TasksWidget mirrorId={mirrorId} />,
-    ai:            <AiContentWidget mirrorId={mirrorId} aiBackendUrl={aiBackendUrl} />,
-    voice:         <VoiceTranscriptWidget />,
     news:          <NewsWidget />,
-  }), [mirrorId, aiBackendUrl]);
+  }), [mirrorId]);
 
   useEffect(() => {
     // Guard: if not authenticated, redirect to rpi-login
@@ -58,7 +53,6 @@ export default function MirrorDisplay() {
       try {
         const data = JSON.parse(e.data);
         if (data.layout) setWidgets(data.layout);
-        if (data.aiBackendUrl) setAiBackendUrl(data.aiBackendUrl);
       } catch {
         // ignore malformed messages
       }

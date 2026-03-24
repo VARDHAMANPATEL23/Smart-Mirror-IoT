@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   if (!mirror)
     return NextResponse.json({ message: "Mirror not found" }, { status: 404 });
 
-  return NextResponse.json({ layout: mirror.layout, aiBackendUrl: mirror.aiBackendUrl });
+  return NextResponse.json({ layout: mirror.layout });
 }
 
 // POST /api/layout  — publish new layout (requires user session)

@@ -23,8 +23,6 @@ import { Widget } from "@/components/dashboard/Widget";
 import { ClockWidget } from "@/components/widgets/ClockWidget";
 import { WeatherWidget } from "@/components/widgets/WeatherWidget";
 import { TasksWidget } from "@/components/widgets/TasksWidget";
-import { AiContentWidget } from "@/components/widgets/AiContentWidget";
-import { VoiceTranscriptWidget } from "@/components/widgets/VoiceTranscriptWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
 import { NewsWidget } from "@/components/widgets/NewsWidget";
 
@@ -43,8 +41,6 @@ const WIDGET_REGISTRY: Record<string, { label: string; node: React.ReactNode }> 
   clock:         { label: "Clock",         node: <ClockWidget /> },
   weather:       { label: "Weather",       node: <WeatherWidget /> },
   tasks:         { label: "Tasks",         node: <TasksWidget isBuilder={true} /> },
-  ai:            { label: "AI Content",    node: <AiContentWidget /> },
-  voice:         { label: "Voice Transcript", node: <VoiceTranscriptWidget /> },
   news:          { label: "Latest News",   node: <NewsWidget /> },
 };
 
@@ -62,12 +58,10 @@ const SIZE_CYCLE: Record<string, "1x1" | "2x1" | "2x2"> = {
 
 // Default widget sizes for quick-add
 const DEFAULT_SIZE: Record<string, "1x1" | "2x1" | "2x2"> = {
-  ai: "2x2",
   weather: "1x1",
   clock: "1x1",
   project_title: "2x1",
   tasks: "2x1",
-  voice: "2x1",
   news: "2x1",
 };
 
@@ -76,8 +70,7 @@ const initialLayout: WidgetData[] = [
   { id: "clock",   type: "clock",         size: "1x1" },
   { id: "weather", type: "weather",       size: "1x1" },
   { id: "tasks",   type: "tasks",         size: "2x1" },
-  { id: "ai",      type: "ai",            size: "2x2" },
-  { id: "voice",   type: "voice",         size: "2x1" },
+  { id: "news",    type: "news",          size: "2x1" },
 ];
 
 // --- Draggable widget inside the WYSIWYG preview ---

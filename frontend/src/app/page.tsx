@@ -5,8 +5,6 @@ import { Widget } from "@/components/dashboard/Widget";
 import { ClockWidget } from "@/components/widgets/ClockWidget";
 import { WeatherWidget } from "@/components/widgets/WeatherWidget";
 import { TasksWidget } from "@/components/widgets/TasksWidget";
-import { AiContentWidget } from "@/components/widgets/AiContentWidget";
-import { VoiceTranscriptWidget } from "@/components/widgets/VoiceTranscriptWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
 
 interface WidgetData {
@@ -20,8 +18,6 @@ const WIDGET_REGISTRY: Record<string, React.ReactNode> = {
   clock: <ClockWidget />,
   weather: <WeatherWidget />,
   tasks: <TasksWidget />,
-  ai: <AiContentWidget />,
-  voice: <VoiceTranscriptWidget />,
 };
 
 // In the future, this config will be fetched from MongoDB
@@ -30,8 +26,6 @@ const userLayoutConfig: WidgetData[] = [
   { id: "clock", type: "clock", size: "1x1" },
   { id: "weather", type: "weather", size: "1x1" },
   { id: "tasks", type: "tasks", size: "2x1" },
-  { id: "ai", type: "ai", size: "2x2" },
-  { id: "voice", type: "voice", size: "2x1" },
 ];
 
 export default function Dashboard() {
