@@ -1,64 +1,69 @@
-# Vercel Deployment Guide — Smart Mirror Frontend
+# Smart Mirror IoT Platform — Implementation Guide
 
-This guide describes how to deploy your Next.js Smart Mirror frontend to Vercel while keeping your AI Backend and Ollama local for maximum speed and privacy.
-
-## **Architecture Overview**
-- **Vercel**: Hosts the Global UI (Builder & Registry).
-- **Home/Uni Server**: Hosts the local `backend/main.py` and `Ollama`.
-- **Mirror**: Discovers the Local Server automatically via MongoDB.
+This guide describes how to set up and deploy the Smart Mirror system. The AI modules and local Python backend have been removed to prioritize a lightweight, cloud-managed dashboard for Raspberry Pi displays.
 
 ---
 
-## **1. Environment Variables**
-Copy your local `.env.local` variables into the Vercel Dashboard (**Settings > Environment Variables**):
-
-| Key | Value | Notes |
-| :--- | :--- | :--- |
-| `MONGODB_URI` | `mongodb+srv://...` | Same as your local cluster |
-| `NEXTAUTH_URL` | `https://your-app.vercel.app` | **CRITICAL**: Use your production URL |
-| `NEXTAUTH_SECRET` | `your_secret_string` | Generate a strong value |
-| `MONGODB_DB` | `test` | Or your preferred name |
+## 🏗️ Architecture
+- **Frontend (Next.js 15)**: Hosted on Vercel. Manages the Mirror UI, Layout Builder, and API routes.
+- **Database (MongoDB Atlas)**: Stores mirror configurations, user layouts, and task lists.
+- **Mirror (Raspberry Pi)**: Runs a full-screen browser pointing to the Mirror ID URL.
 
 ---
 
-## **2. Deployment Steps (CLI)**
-If you have the Vercel CLI installed:
-```bash
-# From the project root
+## 🛠️ Step 1: Environment Setup
+Copy the following keys into your \`/frontend/.env.local\` and your Vercel Environment Variables:
+
+| Key | Description |
+| :--- | :--- |
+| \`MONGODB_URI\` | Connection string for your MongoDB Atlas cluster. |
+| \`NEXTAUTH_URL\` | Your production URL (e.g., \`https://mirror.vercel.app\`). |
+| \`NEXTAUTH_SECRET\` | A strong random string for session encryption. |
+
+---
+
+## 🖥️ Step 2: Running Locally
+Navigate to the frontend directory and install dependencies:
+\`\`\`bash
 cd frontend
-vercel login
-vercel link
-vercel env pull
-vercel --prod
-```
+bun install     # or npm install
+npm run dev
+\`\`\`
 
 ---
 
-## **3. Handling Insecure Origins (HTTP Local Backend)**
-Vercel uses **HTTPS**. Browsers block HTTPS sites from calling local HTTP backends (e.g., `http://192.168.1.12:8000`). To fix this for your Mirror:
-
-### **Option A: The Local Bypass (Recommended)**
-Configure your Raspberry Pi's Chromium flags:
-1. Navigate to: `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
-2. Add your Vercel URL: `https://your-mirror.vercel.app`
-3. Restart Chromium.
-
-### **Option B: Tailscale Funnel**
-If you want to access your AI Backend globally (without being on the same WiFi):
-```bash
-tailscale funnel 8000
-```
-Then use the Tailscale URL as your `aiBackendUrl` in MongoDB.
+## 🧩 Step 3: Mirror Configuration
+1. **Register Mirror**: Use the **Display Builder** page to register a new \`Mirror ID\` and \`PIN\`.
+2. **Build Layout**: Drag and drop widgets (Clock, Weather, News, Tasks) into the 560x1080 simulator.
+3. **Publish**: Click "Publish Layout" to sync changes to the database.
 
 ---
 
-## **4. Deployment Checklist**
-- [ ] Vercel App is linked to your GitHub repo.
-- [ ] MongoDB Atlas IP Whitelist includes `0.0.0.0/0` (Vercel uses dynamic IPs).
-- [ ] NextAuth sessions are working on the production URL.
+## 📺 Step 4: Raspberry Pi Setup
+To turn your RPi into a dedicated mirror display:
+
+1. **Auto-Login**:
+   - Navigate to \`/rpi-login\` on your Pi.
+   - Enter your \`Mirror ID\` and \`PIN\`. This will store the session in LocalStorage.
+2. **Kiosk Mode**:
+   Set Chromium to launch on boot in fullscreen:
+   \`\`\`bash
+   chromium-browser --kiosk --incognito https://your-app.vercel.app/mirror/[YOUR_MIRROR_ID]
+   \`\`\`
 
 ---
 
-## **5. Maintenance**
-- **Mirror ID**: Ensure your RPi matches the `MIRROR_ID` set in your local backend's `.env`.
-- **Heartbeat**: Check your MongoDB `Mirror` collection to confirm the production frontend is seeing your local backend's registration.
+## 📦 Step 5: Features & Widgets
+- **Clock**: Synchronized local time.
+- **Weather**: Real-time forecast updates.
+- **News**: Global headlines via BBC RSS integration.
+- **Tasks**: Interactive to-do list managed from the builder.
+- **Project Title**: Customizable header for your mirror.
+
+---
+
+## 🧹 Maintenance & Cleanup
+Since the AI backend and face visualizers were removed:
+- **Ollama**: No longer required.
+- **Python Backend**: Redundant and removed.
+- **IP Discovery**: The mirror now discovers its layout directly via the Mirror ID slug.

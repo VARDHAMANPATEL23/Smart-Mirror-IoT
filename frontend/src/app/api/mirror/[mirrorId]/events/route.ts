@@ -6,9 +6,9 @@ import Mirror from "@/models/Mirror";
 // GET /api/mirror/[mirrorId]/events — SSE stream used by RPi display page
 export async function GET(
   req: NextRequest,
-  { params }: { params: { mirrorId: string } }
+  { params }: { params: Promise<{ mirrorId: string }> }
 ) {
-  const { mirrorId } = params;
+  const { mirrorId } = await params;
 
   await dbConnect();
   const mirror = await Mirror.findOne({ mirrorId });
