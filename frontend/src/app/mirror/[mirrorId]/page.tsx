@@ -36,7 +36,10 @@ export default function MirrorDisplay() {
     weather:       (config?: any, size?: string) => <WeatherWidget config={config} />,
     tasks:         (config?: any, size?: string) => <TasksWidget mirrorId={mirrorId} />,
     news:          (config?: any, size?: string) => <NewsWidget config={config} />,
-    finance:       (config?: any, size?: string) => <FinanceWidget config={config} size={size} />,
+    finance:       (config?: any, size?: string) => {
+      const Comp = FinanceWidget as any;
+      return <Comp config={config} size={size} />;
+    },
   }), [mirrorId]);
 
   useEffect(() => {

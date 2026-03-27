@@ -8,11 +8,11 @@ interface NewsItem {
   link: string;
   pubDate: string;
   category?: string;
+  contentSnippet?: string;
 }
 
 export function NewsWidget({ config }: { config?: any }) {
   const [news, setNews] = useState<NewsItem[]>([]);
-  const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const providers = config?.providers || "global,national,local";
@@ -35,6 +35,16 @@ export function NewsWidget({ config }: { config?: any }) {
     return () => clearInterval(refreshInterval);
   }, [providers]);
 
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (news.length === 0) return;
+    const scrollInterval = setInterval(() => {
+      setIndex((i) => (i + 1) % news.length);
+    }, 6000); // Rotate headlines every 6 seconds
+    return () => clearInterval(scrollInterval);
+  }, [news]);
+
   if (loading) return (
     <div className="flex items-center justify-center h-full text-white/20 text-[10px] uppercase tracking-widest animate-pulse">
       Loading Headlines...
@@ -43,43 +53,42 @@ export function NewsWidget({ config }: { config?: any }) {
 
   if (news.length === 0) return null;
 
+  const current = news[index];
+
   return (
     <div className="flex flex-col h-full bg-black/20 p-4 rounded-xl border border-white/5 group relative overflow-hidden">
-      <style>{`
-        @keyframes newsMarquee {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        .animate-news-marquee {
-          animation: newsMarquee 60s linear infinite;
-        }
-      `}</style>
-      
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Newspaper size={14} className="text-cyan-500 opacity-50" />
-          <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Latest Updates</span>
+          <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{current.category || 'News'}</span>
         </div>
-        <div className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">{news.length} Feeds</div>
+        <div className="text-[9px] text-white/20 font-mono">
+          {new Date(current.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
       </div>
       
       <div className="flex-1 flex items-center overflow-hidden w-full relative">
-        <div className="flex whitespace-nowrap animate-news-marquee gap-12 items-center">
-          {news.map((item, idx) => (
-            <div key={idx} className="flex flex-col items-start gap-1">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full drop-shadow-[0_0_2px_rgba(34,211,238,0.5)]"></span>
-                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{item.category || 'News'}</span>
-                <span className="text-[9px] text-white/20 font-mono">
-                  {new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <h3 className="text-sm font-light text-white/90 leading-relaxed tracking-wide">
-                {item.title}
-              </h3>
-            </div>
-          ))}
+        <div 
+          key={index} 
+          className="animate-in slide-in-from-right-4 fade-in duration-700 ease-out w-full"
+        >
+          <h3 className="text-sm font-light text-white/90 leading-relaxed tracking-wide">
+            {current.title}
+          </h3>
+          <p className="text-[10px] text-white/40 mt-2 line-clamp-2 leading-relaxed opacity-60">
+            {current.contentSnippet}
+          </p>
         </div>
+      </div>
+
+      {/* Progress indicators */}
+      <div className="flex gap-1 mt-4">
+        {news.slice(0, 10).map((_, i) => (
+          <div 
+            key={i} 
+            className={`h-0.5 transition-all duration-500 rounded-full ${i === index ? "w-4 bg-cyan-500/60" : "w-1 bg-white/10"}`} 
+          />
+        ))}
       </div>
     </div>
   );
