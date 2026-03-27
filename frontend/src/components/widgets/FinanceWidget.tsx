@@ -65,22 +65,22 @@ export function FinanceWidget({ config, size }: { config?: any, size?: string })
   );
 
   return (
-    <div className="flex flex-col h-full bg-black/20 p-4 rounded-xl border border-white/5">
-      <div className="flex items-center gap-2 mb-3">
-        <Activity size={14} className="text-cyan-500 opacity-50" />
-        <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Markets</span>
+    <div className="flex flex-col h-full bg-black/20 p-5 rounded-xl border border-white/5">
+      <div className="flex items-center gap-2 mb-4">
+        <Activity size={18} className="text-cyan-500 opacity-70" />
+        <span className="text-xs font-black text-white/40 uppercase tracking-[0.2em]">Live Markets</span>
       </div>
 
       <div className={`flex-1 flex flex-col justify-around overflow-hidden ${size === '2x2' ? 'gap-4' : 'gap-2'}`}>
         {data.slice(0, size === '2x2' ? 6 : 4).map((item, idx) => (
-          <div key={idx} className="flex justify-between items-center bg-black/40 rounded px-3 py-2 border border-white/5">
-            <span className="text-xs font-bold text-white/80">{item.symbol.replace('-USD', '')}</span>
+          <div key={idx} className="flex justify-between items-center bg-black/40 rounded px-4 py-3 border border-white/5">
+            <span className="text-sm font-black text-white/90 tracking-tight">{item.symbol.replace('-USD', '')}</span>
             <div className="flex items-center">
               {size === '2x2' && <Sparkline data={item.history} color={item.isUp ? '#4ade80' : '#f87171'} />}
               <div className="flex flex-col items-end">
-                <span className="text-xs font-mono text-white">${item.price}</span>
-                <div className={`flex items-center gap-1 text-[10px] font-mono ${item.isUp ? 'text-green-400' : 'text-red-400'}`}>
-                  {item.isUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                <span className="text-sm font-bold font-mono text-white">${item.price}</span>
+                <div className={`flex items-center gap-1 text-xs font-black font-mono ${item.isUp ? 'text-green-400' : 'text-red-400'}`}>
+                  {item.isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                   <span>{item.changePercent}%</span>
                 </div>
               </div>

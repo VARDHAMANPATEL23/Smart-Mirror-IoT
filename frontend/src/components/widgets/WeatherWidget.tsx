@@ -89,24 +89,24 @@ export function WeatherWidget({ config }: { config?: any }) {
   );
 
   return (
-    <div className="flex w-full h-full flex-col justify-center items-center text-center gap-1 p-2">
-      <div className="text-[12px] font-bold text-cyan-400 tracking-[0.2em] uppercase drop-shadow-[0_0_2px_rgba(34,211,238,0.3)]">
+    <div className="flex w-full h-full flex-col justify-center items-center text-center gap-2 p-3">
+      <div className="text-sm font-black text-cyan-400 tracking-[0.3em] uppercase drop-shadow-[0_0_4px_rgba(34,211,238,0.4)]">
         {weather.condition}
       </div>
       
       <div className="flex items-start">
-        <span className="text-5xl font-light text-white tracking-tighter drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]">
+        <span className="text-7xl font-bold text-white tracking-tighter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
           {weather.temp}
         </span>
-        <span className="text-2xl font-light text-white/50 mt-1">°{uStr}</span>
+        <span className="text-3xl font-bold text-white/50 mt-2">°{uStr}</span>
       </div>
       
-      <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-1">
+      <div className="text-xs font-black text-white/50 uppercase tracking-[0.2em] mt-2">
         H {weather.max}°{uStr} • L {weather.min}°{uStr}
       </div>
       
-      <div className="mt-3 w-full overflow-hidden text-[9px] font-bold text-white/30 uppercase tracking-widest relative">
-        <div className="whitespace-nowrap animate-[scroll_10s_linear_infinite] inline-block">
+      <div className="mt-4 w-full overflow-hidden text-[11px] font-black text-white/40 uppercase tracking-widest relative">
+        <div className="whitespace-nowrap animate-[scroll_12s_linear_infinite] inline-block">
           Tomorrow: {weather.tomorrow.max}°{uStr} {weather.tomorrow.condition} • Day After: {weather.dayAfter.max}°{uStr} {weather.dayAfter.condition}
         </div>
       </div>

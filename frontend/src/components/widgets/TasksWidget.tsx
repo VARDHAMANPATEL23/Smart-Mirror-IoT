@@ -72,27 +72,27 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
   );
 
   return (
-    <div className="flex w-full h-full flex-col px-4 py-2 overflow-hidden bg-black/10 rounded-xl border border-white/5">
+    <div className="flex w-full h-full flex-col px-5 py-3 overflow-hidden bg-black/10 rounded-xl border border-white/5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">To-Do List</span>
-        <span className="text-[10px] text-cyan-600 font-mono">{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-xs font-black text-white/40 uppercase tracking-[0.2em]">To-Do List</span>
+        <span className="text-xs text-cyan-500 font-bold font-mono">{tasks.length} {tasks.length === 1 ? 'TASK' : 'TASKS'}</span>
       </div>
 
       {/* Task List with Scrolling Animation (only if many tasks) */}
       <div className="flex-1 w-full overflow-hidden relative">
-        <div className={`flex flex-col gap-2.5 w-full ${tasks.length > 4 ? "animate-[scroll_20s_linear_infinite]" : ""}`}>
+        <div className={`flex flex-col gap-3.5 w-full ${tasks.length > 4 ? "animate-[scroll_20s_linear_infinite]" : ""}`}>
           {tasks.map((task) => (
             <div key={task._id} className="flex items-center justify-between group">
-              <div className="flex items-center gap-3 truncate">
+              <div className="flex items-center gap-4 truncate">
                 {task.completed ? (
-                  <CheckCircle size={16} className="text-cyan-600 shrink-0" />
+                  <CheckCircle size={20} className="text-cyan-500 shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.3)]" />
                 ) : (
-                  <Circle size={16} className="text-white/40 shrink-0" />
+                  <Circle size={20} className="text-white/30 shrink-0" />
                 )}
                 <span
-                  className={`text-sm font-light tracking-wide truncate ${
-                    task.completed ? "text-white/30 line-through" : "text-white/90"
+                  className={`text-base font-bold tracking-tight truncate ${
+                    task.completed ? "text-white/20 line-through decoration-cyan-500/30" : "text-white/90"
                   }`}
                 >
                   {task.text}
@@ -101,9 +101,9 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
               {isBuilder && (
                 <button 
                   onClick={() => deleteTask(task._id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-red-400"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:text-red-400"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={16} />
                 </button>
               )}
             </div>
@@ -111,13 +111,13 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
           
           {/* Duplicate set for seamless scrolling if overhead */}
           {tasks.length > 4 && tasks.map((task) => (
-            <div key={`dup-${task._id}`} className="flex items-center gap-3">
+            <div key={`dup-${task._id}`} className="flex items-center gap-4">
                {task.completed ? (
-                  <CheckCircle size={16} className="text-cyan-600 shrink-0" />
+                  <CheckCircle size={20} className="text-cyan-500 shrink-0" />
                 ) : (
-                  <Circle size={16} className="text-white/40 shrink-0" />
+                  <Circle size={20} className="text-white/30 shrink-0" />
                 )}
-              <span className={`text-sm font-light tracking-wide truncate ${task.completed ? "text-white/30 line-through" : "text-white/90"}`}>
+              <span className={`text-base font-bold tracking-tight truncate ${task.completed ? "text-white/20 line-through" : "text-white/90"}`}>
                 {task.text}
               </span>
             </div>
@@ -127,16 +127,16 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
 
       {/* Quick Add Input (Only in Builder mode) */}
       {isBuilder && (
-        <form onSubmit={addTask} className="mt-3 flex gap-2 pt-2 border-t border-white/5">
+        <form onSubmit={addTask} className="mt-4 flex gap-2 pt-3 border-t border-white/5">
           <input 
             type="text"
-            placeholder="New task..."
+            placeholder="ADD NEW TASK..."
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
-            className="flex-1 bg-black/40 border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-cyan-500/50"
+            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-cyan-500/50 uppercase placeholder:text-white/20"
           />
-          <button type="submit" className="text-cyan-500 hover:text-cyan-300">
-            <Plus size={16} />
+          <button type="submit" className="bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 p-2 rounded-lg transition-colors">
+            <Plus size={18} />
           </button>
         </form>
       )}

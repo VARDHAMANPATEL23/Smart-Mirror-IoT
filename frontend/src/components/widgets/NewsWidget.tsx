@@ -69,12 +69,12 @@ export function NewsWidget({ config }: { config?: any }) {
         }
       `}</style>
 
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Newspaper size={14} className="text-cyan-500 opacity-50" />
-          <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{news[index]?.category || 'News'}</span>
+          <Newspaper size={18} className="text-cyan-500 opacity-70" />
+          <span className="text-xs font-black text-white/40 uppercase tracking-[0.2em]">{news[index]?.category || 'News'}</span>
         </div>
-        <div className="text-[9px] text-white/20 font-mono">
+        <div className="text-[11px] text-white/30 font-bold font-mono">
           {new Date(news[index]?.pubDate || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
@@ -84,21 +84,21 @@ export function NewsWidget({ config }: { config?: any }) {
           key={index} 
           className="animate-headline-snap w-full"
         >
-          <h3 className="text-sm font-light text-white/90 leading-relaxed tracking-wide">
+          <h3 className="text-base font-bold text-white leading-tight tracking-tight mb-2">
             {news[index]?.title}
           </h3>
-          <p className="text-[10px] text-white/40 mt-2 line-clamp-2 leading-relaxed opacity-60">
+          <p className="text-xs text-white/50 line-clamp-2 leading-relaxed font-medium">
             {news[index]?.contentSnippet}
           </p>
         </div>
       </div>
 
       {/* Progress indicators */}
-      <div className="flex gap-1 mt-4">
+      <div className="flex gap-1.5 mt-5">
         {news.slice(0, 10).map((_, i) => (
           <div 
             key={i} 
-            className={`h-0.5 transition-all duration-500 rounded-full ${i === index ? "w-4 bg-cyan-500/60" : "w-1 bg-white/10"}`} 
+            className={`h-1 transition-all duration-500 rounded-full ${i === index ? "w-6 bg-cyan-500" : "w-1.5 bg-white/10"}`} 
           />
         ))}
       </div>
