@@ -8,11 +8,13 @@ import { WeatherWidget } from "@/components/widgets/WeatherWidget";
 import { TasksWidget } from "@/components/widgets/TasksWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
 import { NewsWidget } from "@/components/widgets/NewsWidget";
+import { FinanceWidget } from "@/components/widgets/FinanceWidget";
 
 interface WidgetData {
   id: string;
   type: string;
   size: "1x1" | "2x1" | "2x2";
+  config?: any;
 }
 
 const SIZE_CLASSES: Record<string, string> = {
@@ -29,11 +31,12 @@ export default function MirrorDisplay() {
   const [error, setError] = useState("");
 
   const WIDGET_REGISTRY = useMemo(() => ({
-    project_title: <ProjectTitleWidget />,
-    clock:         <ClockWidget />,
-    weather:       <WeatherWidget />,
-    tasks:         <TasksWidget mirrorId={mirrorId} />,
-    news:          <NewsWidget />,
+    project_title: (config?: any, size?: string) => <ProjectTitleWidget />,
+    clock:         (config?: any, size?: string) => <ClockWidget />,
+    weather:       (config?: any, size?: string) => <WeatherWidget config={config} />,
+    tasks:         (config?: any, size?: string) => <TasksWidget mirrorId={mirrorId} />,
+    news:          (config?: any, size?: string) => <NewsWidget config={config} />,
+    finance:       (config?: any, size?: string) => <FinanceWidget config={config} size={size} />,
   }), [mirrorId]);
 
   useEffect(() => {
@@ -67,7 +70,7 @@ export default function MirrorDisplay() {
   }, [mirrorId, router]);
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center relative">
+    <div className="min-h-screen w-full h-full bg-black relative overflow-hidden">
       {/* Connection indicator */}
       <div className="absolute top-3 right-4 flex items-center gap-2 z-10">
         <div className={`w-2 h-2 rounded-full ${connected ? "bg-cyan-400 animate-pulse" : "bg-red-500"}`} />
@@ -76,9 +79,9 @@ export default function MirrorDisplay() {
         </span>
       </div>
 
-      {/* Exact same 560×1080 container as page.tsx */}
+      {/* Exact same 560×1080 container, absolutely tethered to top-right with 2rem padding */}
       <div
-        className="relative bg-black text-white overflow-hidden p-8 border border-white/5"
+        className="absolute top-8 right-8 bg-black text-white overflow-hidden p-8 border border-white/5 rounded-3xl shadow-2xl"
         style={{ width: "560px", height: "1080px" }}
       >
         {widgets.length === 0 ? (
@@ -91,7 +94,7 @@ export default function MirrorDisplay() {
               <div key={widget.id} className={SIZE_CLASSES[widget.size]}>
                 <Widget id={widget.id} title={widget.type}>
                   <div className="flex h-full min-h-full flex-col w-full overflow-hidden">
-                    {(WIDGET_REGISTRY as any)[widget.type]}
+                    {(WIDGET_REGISTRY as any)[widget.type]?.(widget.config, widget.size)}
                   </div>
                 </Widget>
               </div>

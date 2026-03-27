@@ -18,13 +18,14 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X, Monitor, Layers, Send, Link2 } from "lucide-react";
+import { GripVertical, X, Monitor, Layers, Send, Link2, Settings, ChevronLeft } from "lucide-react";
 import { Widget } from "@/components/dashboard/Widget";
 import { ClockWidget } from "@/components/widgets/ClockWidget";
 import { WeatherWidget } from "@/components/widgets/WeatherWidget";
 import { TasksWidget } from "@/components/widgets/TasksWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
 import { NewsWidget } from "@/components/widgets/NewsWidget";
+import { FinanceWidget } from "@/components/widgets/FinanceWidget";
 
 // Mirror dimensions — match page.tsx exactly
 const MIRROR_W = 560;
@@ -34,14 +35,16 @@ interface WidgetData {
   id: string;
   type: string;
   size: "1x1" | "2x1" | "2x2";
+  config?: any;
 }
 
-const WIDGET_REGISTRY: Record<string, { label: string; node: React.ReactNode }> = {
-  project_title: { label: "Project Title", node: <ProjectTitleWidget /> },
-  clock:         { label: "Clock",         node: <ClockWidget /> },
-  weather:       { label: "Weather",       node: <WeatherWidget /> },
-  tasks:         { label: "Tasks",         node: <TasksWidget isBuilder={true} /> },
-  news:          { label: "Latest News",   node: <NewsWidget /> },
+const WIDGET_REGISTRY: Record<string, { label: string; render: (c?: any, s?: string) => React.ReactNode }> = {
+  project_title: { label: "Project Title", render: () => <ProjectTitleWidget /> },
+  clock:         { label: "Clock",         render: () => <ClockWidget /> },
+  weather:       { label: "Weather",       render: (c) => <WeatherWidget config={c} /> },
+  tasks:         { label: "Tasks",         render: () => <TasksWidget isBuilder={true} /> },
+  news:          { label: "Latest News",   render: (c) => <NewsWidget config={c} /> },
+  finance:       { label: "Markets",       render: (c, s) => <FinanceWidget config={c} size={s} /> },
 };
 
 const SIZE_CLASSES: Record<string, string> = {
@@ -63,6 +66,7 @@ const DEFAULT_SIZE: Record<string, "1x1" | "2x1" | "2x2"> = {
   project_title: "2x1",
   tasks: "2x1",
   news: "2x1",
+  finance: "1x1",
 };
 
 const initialLayout: WidgetData[] = [
@@ -75,11 +79,12 @@ const initialLayout: WidgetData[] = [
 
 // --- Draggable widget inside the WYSIWYG preview ---
 function SortablePreviewWidget({
-  id, type, size, onRemove, onToggleSize,
+  id, type, size, config, onRemove, onToggleSize, onEdit,
 }: {
-  id: string; type: string; size: "1x1" | "2x1" | "2x2";
+  id: string; type: string; size: "1x1" | "2x1" | "2x2"; config?: any;
   onRemove: (id: string) => void;
   onToggleSize: (id: string) => void;
+  onEdit: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -116,6 +121,13 @@ function SortablePreviewWidget({
           {size}
         </button>
         <button
+          onClick={() => onEdit(id)}
+          className="bg-black/70 text-white/50 hover:text-cyan-400 p-1 rounded transition-colors"
+          style={{ pointerEvents: "all" }}
+        >
+          <Settings size={14} />
+        </button>
+        <button
           onClick={() => onRemove(id)}
           className="bg-black/70 text-white/50 hover:text-red-400 p-1 rounded"
           style={{ pointerEvents: "all" }}
@@ -127,7 +139,7 @@ function SortablePreviewWidget({
       {/* Exact same Widget wrapper used in page.tsx */}
       <Widget id={id} title={type}>
         <div className="flex h-full min-h-full flex-col w-full overflow-hidden">
-          {WIDGET_REGISTRY[type]?.node}
+          {WIDGET_REGISTRY[type]?.render(config)}
         </div>
       </Widget>
     </div>
@@ -166,8 +178,8 @@ function WidgetLibraryCard({
           }}
         >
           <Widget id={`preview-${type}`} title={type}>
-            <div className="flex h-full min-h-full flex-col w-full overflow-hidden">
-              {WIDGET_REGISTRY[type]?.node}
+            <div className="flex h-full min-h-full flex-col w-full overflow-hidden pointer-events-none">
+              {WIDGET_REGISTRY[type]?.render()}
             </div>
           </Widget>
         </div>
@@ -195,6 +207,7 @@ export default function DisplayBuilder() {
   const [regForm, setRegForm] = useState({ mirrorId: "", pin: "" });
   const [regResult, setRegResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [regLoading, setRegLoading] = useState(false);
+  const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -223,8 +236,12 @@ export default function DisplayBuilder() {
   const handleAdd = (type: string) => {
     setWidgets((curr) => [
       ...curr,
-      { id: `${type}-${Date.now()}`, type, size: DEFAULT_SIZE[type] ?? "2x1" },
+      { id: `${type}-${Date.now()}`, type, size: DEFAULT_SIZE[type] ?? "2x1", config: type === 'finance' ? { tickers: 'BTC-USD,AAPL' } : undefined },
     ]);
+  };
+
+  const handleUpdateConfig = (id: string, newConfig: any) => {
+    setWidgets((curr) => curr.map((w) => w.id === id ? { ...w, config: newConfig } : w));
   };
 
   const handleRegisterMirror = async () => {
@@ -336,8 +353,10 @@ export default function DisplayBuilder() {
                         id={widget.id}
                         type={widget.type}
                         size={widget.size}
+                        config={widget.config}
                         onRemove={handleRemove}
                         onToggleSize={handleToggleSize}
+                        onEdit={setEditingConfigId}
                       />
                     ))}
                   </SortableContext>
@@ -378,17 +397,133 @@ export default function DisplayBuilder() {
             )}
           </div>
 
-          <div className="border-t border-white/10 pt-4">
-            <p className="text-[11px] text-white/30 font-bold uppercase tracking-widest mb-2">Active Widgets</p>
-            <div className="space-y-1">
-              {widgets.map((w) => (
-                <div key={w.id} className="flex items-center justify-between text-[11px]">
-                  <span className="text-white/50 truncate">{WIDGET_REGISTRY[w.type]?.label}</span>
-                  <span className="text-cyan-600 font-bold ml-1">{w.size}</span>
-                </div>
-              ))}
+          {editingConfigId ? (
+            <div className="border-t border-white/10 pt-4 relative">
+              <button onClick={() => setEditingConfigId(null)} className="flex items-center gap-1 text-[10px] text-cyan-500 hover:text-cyan-400 uppercase tracking-widest mb-3" >
+                <ChevronLeft size={12} /> BACK
+              </button>
+              <p className="text-[11px] text-white/30 font-bold uppercase tracking-widest mb-3">Widget Configuration</p>
+              {(() => {
+                const w = widgets.find((x) => x.id === editingConfigId);
+                if (!w) return <p className="text-xs text-white/50">Widget not found</p>;
+                if (w.type === "finance") {
+                  return (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Stock / Crypto Tickers</label>
+                        <input
+                          type="text"
+                          value={w.config?.tickers || ""}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, tickers: e.target.value })}
+                          placeholder="BTC-USD,ETH-USD,AAPL"
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
+                        />
+                        <p className="text-[9px] text-white/30 mt-1 leading-tight tracking-wide">Comma-separated ticker symbols.</p>
+                      </div>
+                    </div>
+                  );
+                }
+                if (w.type === "weather") {
+                  return (
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] text-white/30 uppercase tracking-widest">Location Config</label>
+                          <button 
+                            className="text-[9px] text-cyan-500 hover:text-cyan-400 uppercase tracking-widest font-bold border border-cyan-500/30 px-1.5 rounded bg-cyan-500/10"
+                            onClick={() => {
+                              if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition(
+                                  (pos) => handleUpdateConfig(w.id, { ...w.config, lat: pos.coords.latitude.toFixed(4), lon: pos.coords.longitude.toFixed(4) }),
+                                  (err) => alert("Location access denied or failed.")
+                                );
+                              }
+                            }}
+                          >
+                            Use My IP
+                          </button>
+                        </div>
+                        <select
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-[11px] font-mono focus:outline-none transition-colors mb-2"
+                          value={`${w.config?.lat || "40.7128"},${w.config?.lon || "-74.0060"}`}
+                          onChange={(e) => {
+                            const [lat, lon] = e.target.value.split(",");
+                            handleUpdateConfig(w.id, { ...w.config, lat, lon });
+                          }}
+                        >
+                          <option value="40.7128,-74.0060">Custom / Selected</option>
+                          <option value="19.0760,72.8777">Mumbai, IND</option>
+                          <option value="21.1702,72.8311">Surat, IND</option>
+                          <option value="21.1194,73.1166">Bardoli, IND</option>
+                          <option value="22.5726,88.3639">Kolkata, IND</option>
+                        </select>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <input type="text" placeholder="Lat" value={w.config?.lat || "40.7128"} onChange={(e) => handleUpdateConfig(w.id, { ...w.config, lat: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-white text-[10px] font-mono" />
+                          </div>
+                          <div className="flex-1">
+                            <input type="text" placeholder="Lon" value={w.config?.lon || "-74.0060"} onChange={(e) => handleUpdateConfig(w.id, { ...w.config, lon: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-white text-[10px] font-mono" />
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Temperature Unit</label>
+                        <select
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1 text-white text-[11px] font-mono focus:outline-none transition-colors"
+                          value={w.config?.unit || "celsius"}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, unit: e.target.value })}
+                        >
+                          <option value="celsius">Celsius (°C)</option>
+                          <option value="fahrenheit">Fahrenheit (°F)</option>
+                        </select>
+                      </div>
+                    </div>
+                  );
+                }
+                if (w?.type === "news") {
+                  return (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">News Providers</label>
+                        <select
+                          multiple
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1 text-white text-[11px] font-mono focus:outline-none transition-colors h-24"
+                          value={w!.config?.providers ? w!.config.providers.split(',') : ["global","national","local"]}
+                          onChange={(e) => {
+                            const selected = Array.from(e.target.selectedOptions, option => option.value).join(',');
+                            handleUpdateConfig(w!.id, { ...w!.config, providers: selected });
+                          }}
+                        >
+                          <option value="global">Global (BBC)</option>
+                          <option value="national">National (US/NYT)</option>
+                          <option value="uk">UK National (BBC)</option>
+                          <option value="local">Local (NY Region)</option>
+                          <option value="tech">Technology</option>
+                          <option value="business">Business</option>
+                        </select>
+                        <p className="text-[9px] text-white/30 mt-1 leading-tight tracking-wide">Hold Ctrl/Cmd to select multiple regions or segments.</p>
+                      </div>
+                    </div>
+                  );
+                }
+                return <p className="text-[10px] text-white/50">No settings available for {WIDGET_REGISTRY[w.type]?.label}.</p>;
+              })()}
             </div>
-          </div>
+          ) : (
+            <div className="border-t border-white/10 pt-4">
+              <p className="text-[11px] text-white/30 font-bold uppercase tracking-widest mb-2">Active Widgets</p>
+              <div className="space-y-1">
+                {widgets.map((w) => (
+                  <div key={w.id} className="flex items-center justify-between text-[11px] group">
+                    <span className="text-white/50 truncate cursor-pointer hover:text-white transition-colors" onClick={() => setEditingConfigId(w.id)}>
+                      {WIDGET_REGISTRY[w.type]?.label}
+                    </span>
+                    <span className="text-cyan-600 font-bold ml-1">{w.size}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Register Mirror */}
           <div className="border-t border-white/10 pt-4">
