@@ -57,26 +57,38 @@ export function NewsWidget({ config }: { config?: any }) {
 
   return (
     <div className="flex flex-col h-full bg-black/20 p-4 rounded-xl border border-white/5 group relative overflow-hidden">
+      <style>{`
+        @keyframes headlineSnap {
+          0% { transform: translateX(100%); opacity: 0; }
+          10% { transform: translateX(0); opacity: 1; }
+          90% { transform: translateX(0); opacity: 1; }
+          100% { transform: translateX(-100%); opacity: 0; }
+        }
+        .animate-headline-snap {
+          animation: headlineSnap 6s ease-in-out infinite;
+        }
+      `}</style>
+
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Newspaper size={14} className="text-cyan-500 opacity-50" />
-          <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{current.category || 'News'}</span>
+          <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{news[index]?.category || 'News'}</span>
         </div>
         <div className="text-[9px] text-white/20 font-mono">
-          {new Date(current.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(news[index]?.pubDate || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
       
       <div className="flex-1 flex items-center overflow-hidden w-full relative">
         <div 
           key={index} 
-          className="animate-in slide-in-from-right-4 fade-in duration-700 ease-out w-full"
+          className="animate-headline-snap w-full"
         >
           <h3 className="text-sm font-light text-white/90 leading-relaxed tracking-wide">
-            {current.title}
+            {news[index]?.title}
           </h3>
           <p className="text-[10px] text-white/40 mt-2 line-clamp-2 leading-relaxed opacity-60">
-            {current.contentSnippet}
+            {news[index]?.contentSnippet}
           </p>
         </div>
       </div>
