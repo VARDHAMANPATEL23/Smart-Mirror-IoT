@@ -50,7 +50,7 @@ const WIDGET_REGISTRY: Record<string, { label: string; render: (c?: any, s?: str
 const SIZE_CLASSES: Record<string, string> = {
   "1x1": "col-span-1 row-span-1",
   "2x1": "col-span-2 row-span-1",
-  "2x2": "col-span-2 row-span-2 min-h-[300px]",
+  "2x2": "col-span-2 row-span-2 min-h-[380px]",
 };
 
 const SIZE_CYCLE: Record<string, "1x1" | "2x1" | "2x2"> = {
@@ -156,9 +156,9 @@ function WidgetLibraryCard({
 }) {
   const PREVIEW_W = 200;
   const PREVIEW_H = 100;
-  // Scale a 1-col widget cell (260px wide, 140px tall) down to fit the preview card
+  // Scale a 1-col widget cell (260px wide, 180px tall) down to fit the preview card
   const scaleX = PREVIEW_W / 260;
-  const scaleY = PREVIEW_H / 140;
+  const scaleY = PREVIEW_H / 180;
   const scale = Math.min(scaleX, scaleY);
 
   return (
@@ -171,7 +171,7 @@ function WidgetLibraryCard({
         <div
           style={{
             width: 260,
-            height: 140,
+            height: 180,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
             pointerEvents: "none",
@@ -345,7 +345,7 @@ export default function DisplayBuilder() {
             >
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 {/* Exact same grid as page.tsx */}
-                <div className="p-8 grid grid-cols-2 grid-rows-[repeat(auto-fill,minmax(140px,1fr))] auto-rows-[140px] gap-4 w-full h-full content-start">
+                <div className="p-8 grid grid-cols-2 grid-rows-[repeat(auto-fill,minmax(180px,1fr))] auto-rows-[180px] gap-6 w-full h-full content-start">
                   <SortableContext items={widgets.map((w) => w.id)} strategy={rectSortingStrategy}>
                     {widgets.map((widget) => (
                       <SortablePreviewWidget

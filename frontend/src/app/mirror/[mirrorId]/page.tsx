@@ -20,7 +20,7 @@ interface WidgetData {
 const SIZE_CLASSES: Record<string, string> = {
   "1x1": "col-span-1 row-span-1",
   "2x1": "col-span-2 row-span-1",
-  "2x2": "col-span-2 row-span-2 min-h-[300px]",
+  "2x2": "col-span-2 row-span-2 min-h-[380px]",
 };
 
 export default function MirrorDisplay() {
@@ -92,7 +92,7 @@ export default function MirrorDisplay() {
             WAITING FOR LAYOUT...
           </div>
         ) : (
-          <div className="grid grid-cols-2 grid-rows-[repeat(auto-fill,minmax(140px,1fr))] auto-rows-[140px] gap-4 w-full h-full">
+          <div className="grid grid-cols-2 grid-rows-[repeat(auto-fill,minmax(180px,1fr))] auto-rows-[180px] gap-6 w-full h-full">
             {widgets.map((widget) => (
               <div key={widget.id} className={SIZE_CLASSES[widget.size]}>
                 <Widget id={widget.id} title={widget.type}>
