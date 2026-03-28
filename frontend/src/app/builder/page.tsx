@@ -300,16 +300,16 @@ export default function DisplayBuilder() {
   return (
     <div className="h-screen bg-neutral-950 text-white flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="flex-none flex items-center justify-between px-8 py-4 border-b border-white/10 bg-neutral-950/80 backdrop-blur-sm z-10">
+      <header className="flex-none flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-b border-white/10 bg-neutral-950/80 backdrop-blur-sm z-10">
         <div>
-          <h1 className="text-2xl font-bold tracking-widest text-cyan-400">DISPLAY BUILDER</h1>
-          <p className="text-white/40 text-xs mt-0.5 tracking-wide">WYSIWYG — 1:1 mirror preview</p>
+          <h1 className="text-lg md:text-2xl font-bold tracking-widest text-cyan-400 whitespace-nowrap">DISPLAY BUILDER</h1>
+          <p className="hidden md:block text-white/40 text-xs mt-0.5 tracking-wide">WYSIWYG — 1:1 mirror preview</p>
         </div>
-        <div className="flex items-center gap-3 text-xs text-white/30">
+        <div className="hidden sm:flex items-center gap-3 text-xs text-white/30 uppercase tracking-tighter">
           <Monitor size={14} />
-          <span>{MIRROR_W} × {MIRROR_H}px</span>
+          <span>{MIRROR_W}×{MIRROR_H}</span>
           <span className="text-white/10">|</span>
-          <span>Scale {(mirrorScale * 100).toFixed(0)}%</span>
+          <span>{(mirrorScale * 100).toFixed(0)}%</span>
         </div>
       </header>
 
