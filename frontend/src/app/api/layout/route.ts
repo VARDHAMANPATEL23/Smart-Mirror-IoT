@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   if (!mirror)
     return NextResponse.json({ message: "Mirror not found" }, { status: 404 });
 
-  return NextResponse.json({ layout: mirror.layout });
+  return NextResponse.json({ layout: mirror.layout, alignment: mirror.alignment });
 }
 
 // POST /api/layout  — publish new layout (requires user session)
@@ -25,14 +25,14 @@ export async function POST(req: NextRequest) {
   if (!session)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-  const { mirrorId, layout } = await req.json();
+  const { mirrorId, layout, alignment } = await req.json();
   if (!mirrorId || !layout)
     return NextResponse.json({ message: "mirrorId and layout required" }, { status: 400 });
 
   await dbConnect();
   const mirror = await Mirror.findOneAndUpdate(
     { mirrorId, ownerId: (session.user as any).id },
-    { layout, lastUpdated: new Date() },
+    { layout, alignment, lastUpdated: new Date() },
     { new: true }
   );
 

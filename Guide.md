@@ -33,9 +33,11 @@ npm run dev
 ---
 
 ## 🧩 Step 3: Mirror Configuration
-1. **Register Mirror**: Use the **Display Builder** page to register a new \`Mirror ID\` and \`PIN\`.
-2. **Build Layout**: Drag and drop widgets (Clock, Weather, News, Tasks) into the 560x1080 simulator.
-3. **Publish**: Click "Publish Layout" to sync changes to the database.
+1. **Register Mirror**: Use the **Display Builder** page to register a new `Mirror ID` and `PIN`.
+2. **Set Alignment**: Choose the screen corner (Top-Left, Top-Right, etc.) for the entire dashboard.
+3. **Build Layout**: Drag and drop widgets into the 560x1080 simulator.
+4. **Configure Widgets**: Click the gear icon on any widget to customize its settings (e.g., 12h clock, custom title).
+5. **Publish**: Click "Publish Layout" to sync changes to the database.
 
 ---
 
@@ -43,22 +45,23 @@ npm run dev
 To turn your RPi into a dedicated mirror display:
 
 1. **Auto-Login**:
-   - Navigate to \`/rpi-login\` on your Pi.
-   - Enter your \`Mirror ID\` and \`PIN\`. This will store the session in LocalStorage.
+   - Navigate to `/rpi-login` on your Pi.
+   - Enter your `Mirror ID` and `PIN`. This will store the session in LocalStorage.
 2. **Kiosk Mode**:
    Set Chromium to launch on boot in fullscreen:
-   \`\`\`bash
+   ```bash
    chromium-browser --kiosk --incognito https://your-app.vercel.app/mirror/[YOUR_MIRROR_ID]
-   \`\`\`
+   ```
 
 ---
 
 ## 📦 Step 5: Features & Widgets
-- **Clock**: Synchronized local time.
-- **Weather**: Real-time forecast updates.
-- **News**: Global headlines via BBC RSS integration.
-- **Tasks**: Interactive to-do list managed from the builder.
-- **Project Title**: Customizable header for your mirror.
+- **Clock**: Synchronized local time with 12h/24h options.
+- **Weather**: Real-time forecast updates with location config.
+- **News**: Global headlines via BBC RSS integration with provider selection.
+- **Tasks**: Interactive to-do list with real-time DB syncing.
+- **Project Title**: Customizable header text for your mirror.
+- **Finance**: Live stock/crypto ticker tracking.
 
 ---
 

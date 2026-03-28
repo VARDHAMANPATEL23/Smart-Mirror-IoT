@@ -39,8 +39,8 @@ interface WidgetData {
 }
 
 const WIDGET_REGISTRY: Record<string, { label: string; render: (c?: any, s?: string) => React.ReactNode }> = {
-  project_title: { label: "Project Title", render: () => <ProjectTitleWidget /> },
-  clock:         { label: "Clock",         render: () => <ClockWidget /> },
+  project_title: { label: "Project Title", render: (c) => <ProjectTitleWidget config={c} /> },
+  clock:         { label: "Clock",         render: (c) => <ClockWidget config={c} /> },
   weather:       { label: "Weather",       render: (c) => <WeatherWidget config={c} /> },
   tasks:         { label: "Tasks",         render: () => <TasksWidget isBuilder={true} /> },
   news:          { label: "Latest News",   render: (c) => <NewsWidget config={c} /> },
@@ -208,6 +208,7 @@ export default function DisplayBuilder() {
   const [regResult, setRegResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [regLoading, setRegLoading] = useState(false);
   const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
+  const [alignment, setAlignment] = useState("top-right");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -277,7 +278,7 @@ export default function DisplayBuilder() {
       const res = await fetch("/api/layout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mirrorId: mirrorId.trim(), layout: widgets }),
+        body: JSON.stringify({ mirrorId: mirrorId.trim(), layout: widgets, alignment }),
       });
       const data = await res.json();
       setPublishResult({ ok: res.ok, msg: res.ok ? "Published to mirror" : data.message });
@@ -506,21 +507,86 @@ export default function DisplayBuilder() {
                     </div>
                   );
                 }
+                if (w.type === "project_title") {
+                  return (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Header Text</label>
+                        <input
+                          type="text"
+                          value={w.config?.title || ""}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, title: e.target.value })}
+                          placeholder="SMART MIRROR OS"
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+                if (w.type === "clock") {
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest">12-Hour Format</label>
+                        <input
+                          type="checkbox"
+                          checked={w.config?.hour12 || false}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, hour12: e.target.checked })}
+                          className="accent-cyan-500"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest">Show Date</label>
+                        <input
+                          type="checkbox"
+                          checked={w.config?.showDate !== false}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, showDate: e.target.checked })}
+                          className="accent-cyan-500"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest">Show Seconds</label>
+                        <input
+                          type="checkbox"
+                          checked={w.config?.showSeconds || false}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, showSeconds: e.target.checked })}
+                          className="accent-cyan-500"
+                        />
+                      </div>
+                    </div>
+                  );
+                }
                 return <p className="text-[10px] text-white/50">No settings available for {WIDGET_REGISTRY[w.type]?.label}.</p>;
               })()}
             </div>
           ) : (
-            <div className="border-t border-white/10 pt-4">
-              <p className="text-[11px] text-white/30 font-bold uppercase tracking-widest mb-2">Active Widgets</p>
-              <div className="space-y-1">
-                {widgets.map((w) => (
-                  <div key={w.id} className="flex items-center justify-between text-[11px] group">
-                    <span className="text-white/50 truncate cursor-pointer hover:text-white transition-colors" onClick={() => setEditingConfigId(w.id)}>
-                      {WIDGET_REGISTRY[w.type]?.label}
-                    </span>
-                    <span className="text-cyan-600 font-bold ml-1">{w.size}</span>
-                  </div>
-                ))}
+            <div className="border-t border-white/10 pt-4 flex flex-col gap-5">
+              <div>
+                <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Screen Corner</label>
+                <select
+                  value={alignment}
+                  onChange={(e) => setAlignment(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-[11px] font-mono focus:outline-none transition-colors"
+                >
+                  <option value="top-left">Top Left</option>
+                  <option value="top-right">Top Right</option>
+                  <option value="bottom-left">Bottom Left</option>
+                  <option value="bottom-right">Bottom Right</option>
+                </select>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-white/30 font-bold uppercase tracking-widest mb-2">Active Widgets</p>
+                <div className="space-y-1">
+                  {widgets.map((w) => (
+                    <div key={w.id} className="flex items-center justify-between text-[11px] group">
+                      <span className="text-white/50 truncate cursor-pointer hover:text-white transition-colors" onClick={() => setEditingConfigId(w.id)}>
+                        {WIDGET_REGISTRY[w.type]?.label}
+                      </span>
+                      <span className="text-cyan-600 font-bold ml-1">{w.size}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

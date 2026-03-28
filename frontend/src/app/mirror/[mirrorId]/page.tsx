@@ -27,12 +27,13 @@ export default function MirrorDisplay() {
   const { mirrorId } = useParams<{ mirrorId: string }>();
   const router = useRouter();
   const [widgets, setWidgets] = useState<WidgetData[]>([]);
+  const [alignment, setAlignment] = useState("top-right");
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
 
   const WIDGET_REGISTRY = useMemo(() => ({
-    project_title: (config?: any, size?: string) => <ProjectTitleWidget />,
-    clock:         (config?: any, size?: string) => <ClockWidget />,
+    project_title: (config?: any, size?: string) => <ProjectTitleWidget config={config} />,
+    clock:         (config?: any, size?: string) => <ClockWidget config={config} />,
     weather:       (config?: any, size?: string) => <WeatherWidget config={config} />,
     tasks:         (config?: any, size?: string) => <TasksWidget mirrorId={mirrorId} />,
     news:          (config?: any, size?: string) => <NewsWidget config={config} />,
@@ -59,6 +60,7 @@ export default function MirrorDisplay() {
       try {
         const data = JSON.parse(e.data);
         if (data.layout) setWidgets(data.layout);
+        if (data.alignment) setAlignment(data.alignment);
       } catch {
         // ignore malformed messages
       }
@@ -82,9 +84,14 @@ export default function MirrorDisplay() {
         </span>
       </div>
 
-      {/* Exact same 560×1080 container, absolutely tethered to top-right with 2rem padding */}
+      {/* Centered or Corner-Bound 560×1080 container */}
       <div
-        className="absolute top-8 right-8 bg-black text-white overflow-hidden p-8 border border-white/5 rounded-3xl shadow-2xl"
+        className={`fixed bg-black text-white overflow-hidden p-8 border border-white/5 rounded-3xl shadow-2xl transition-all duration-700
+          ${alignment === "top-left" ? "top-8 left-8" : ""}
+          ${alignment === "top-right" ? "top-8 right-8" : ""}
+          ${alignment === "bottom-left" ? "bottom-8 left-8" : ""}
+          ${alignment === "bottom-right" ? "bottom-8 right-8" : ""}
+        `}
         style={{ width: "560px", height: "1080px" }}
       >
         {widgets.length === 0 ? (

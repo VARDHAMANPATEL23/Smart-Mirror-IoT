@@ -5,6 +5,7 @@ export interface IMirror extends Document {
   pin: string;           // hashed PIN for RPi login
   ownerId: string;       // references User._id
   layout: object[];      // widget config array (same shape as WidgetData[])
+  alignment: string;     // "top-right", "top-left", etc
   lastUpdated: Date;
 }
 
@@ -13,6 +14,7 @@ const MirrorSchema: Schema = new Schema({
   pin:         { type: String, required: true },
   ownerId:     { type: String, required: true },
   layout:      { type: [Object], default: [] },
+  alignment:   { type: String, default: "top-right" },
   lastUpdated: { type: Date, default: Date.now },
 });
 

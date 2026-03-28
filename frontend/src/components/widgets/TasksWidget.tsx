@@ -34,7 +34,7 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
 
   useEffect(() => {
     fetchTasks();
-    const interval = setInterval(fetchTasks, 60000); // Refresh every minute
+    const interval = setInterval(fetchTasks, 5000); // Refresh every 5 seconds for near-instant sync
     return () => clearInterval(interval);
   }, [fetchTasks]);
 

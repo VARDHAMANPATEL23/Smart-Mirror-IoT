@@ -21,12 +21,12 @@ export async function GET(
   const stream = new ReadableStream({
     start(controller) {
       // Send current layout immediately on connect
-      const initial = `data: ${JSON.stringify({ layout: mirror.layout })}\n\n`;
+      const initial = `data: ${JSON.stringify({ layout: mirror.layout, alignment: mirror.alignment })}\n\n`;
       controller.enqueue(encoder.encode(initial));
 
       // Push updates whenever the layout is published
       const onUpdate = (updatedMirror: any) => {
-        const msg = `data: ${JSON.stringify({ layout: updatedMirror.layout })}\n\n`;
+        const msg = `data: ${JSON.stringify({ layout: updatedMirror.layout, alignment: updatedMirror.alignment })}\n\n`;
         controller.enqueue(encoder.encode(msg));
       };
 
