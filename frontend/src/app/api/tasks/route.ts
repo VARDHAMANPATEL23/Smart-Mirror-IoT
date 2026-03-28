@@ -5,24 +5,10 @@ import dbConnect from "@/lib/mongodb";
 import Task from "@/models/Task";
 import Mirror from "@/models/Mirror";
 
-// Simple in-memory cache for rate limiting (10 seconds)
-const lastTaskFetch: Record<string, number> = {};
-
 // GET /api/tasks?mirrorId=xxx — Fetches tasks for specified owner or mirror context
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const mirrorId = req.nextUrl.searchParams.get("mirrorId");
-  const identifier = mirrorId || (session?.user as any)?.id;
-
-  // Global Rate Limiting: 1 request per 3 seconds per identifier
-  if (identifier) {
-    const now = Date.now();
-    const lastFetch = lastTaskFetch[identifier] || 0;
-    if (now - lastFetch < 3000) {
-      return NextResponse.json({ message: "Rate limit exceeded (3s)", throttled: true }, { status: 429 });
-    }
-    lastTaskFetch[identifier] = now;
-  }
 
   await dbConnect();
 

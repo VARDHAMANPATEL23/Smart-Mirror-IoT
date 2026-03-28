@@ -34,7 +34,7 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
 
   useEffect(() => {
     fetchTasks();
-    const interval = setInterval(fetchTasks, 3000); // 3-second pulse
+    const interval = setInterval(fetchTasks, 5000); // Original refresh interval
     return () => clearInterval(interval);
   }, [fetchTasks]);
 
