@@ -366,7 +366,7 @@ export default function DisplayBuilder() {
                         config={widget.config}
                         onRemove={handleRemove}
                         onToggleSize={handleToggleSize}
-                        onEdit={setEditingConfigId}
+                        onEdit={(id) => { setEditingConfigId(id); setMobileView("settings"); }}
                       />
                     ))}
                   </SortableContext>
@@ -709,52 +709,217 @@ export default function DisplayBuilder() {
 
             {mobileView === "settings" && (
               <div className="space-y-6 pb-20">
-                 <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2">
                   <Settings size={18} className="text-cyan-500" />
-                  <h2 className="text-sm font-bold uppercase tracking-widest">Mirror Configuration</h2>
-                </div>
-                
-                <div className="bg-black/20 p-4 rounded-xl space-y-4">
-                   <div>
-                    <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Mirror ID</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. smart-mirror-01"
-                      value={mirrorId}
-                      onChange={(e) => setMirrorId(e.target.value)}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-cyan-500/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Screen Corner</label>
-                    <select
-                      value={alignment}
-                      onChange={(e) => setAlignment(e.target.value)}
-                      className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-3 py-2 text-white text-[13px] font-mono focus:outline-none transition-colors"
-                    >
-                      <option value="top-left">Top Left</option>
-                      <option value="top-right">Top Right</option>
-                      <option value="bottom-left">Bottom Left</option>
-                      <option value="bottom-right">Bottom Right</option>
-                    </select>
-                  </div>
-                  <button
-                    onClick={handlePublish}
-                    disabled={publishing}
-                    className="w-full bg-cyan-600 text-white font-bold py-3 rounded-lg text-sm uppercase tracking-widest shadow-lg shadow-cyan-500/10"
-                  >
-                    {publishing ? "Publishing..." : "Sync to Mirror"}
-                  </button>
+                  <h2 className="text-sm font-bold uppercase tracking-widest">
+                    {editingConfigId ? "Widget Settings" : "Mirror Configuration"}
+                  </h2>
                 </div>
 
-                <div className="space-y-4 pt-4 border-t border-white/5">
-                   <h3 className="text-[11px] text-white/30 font-bold uppercase tracking-widest">Registration</h3>
-                   <div className="grid grid-cols-2 gap-3">
-                      <input type="text" placeholder="ID" value={regForm.mirrorId} onChange={(e) => setRegForm({...regForm, mirrorId: e.target.value})} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-sm" />
-                      <input type="password" placeholder="PIN" value={regForm.pin} onChange={(e) => setRegForm({...regForm, pin: e.target.value})} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-sm" />
-                   </div>
-                   <button onClick={handleRegisterMirror} disabled={regLoading} className="w-full bg-neutral-800 py-3 rounded text-sm font-bold uppercase">Update Registry</button>
-                </div>
+                {editingConfigId ? (
+                  <div className="bg-black/20 p-5 rounded-xl space-y-4">
+                    <button onClick={() => setEditingConfigId(null)} className="flex items-center gap-1 text-[10px] text-cyan-500 hover:text-cyan-400 uppercase tracking-widest mb-4" >
+                      <ChevronLeft size={14} /> BACK TO MIRROR CONFIG
+                    </button>
+                    
+                    {(() => {
+                      const w = widgets.find((x) => x.id === editingConfigId);
+                      if (!w) return <p className="text-xs text-white/50">Widget not found</p>;
+                      
+                      if (w.type === "finance") {
+                        return (
+                          <div className="space-y-4">
+                             <div>
+                                <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Stock / Crypto Tickers</label>
+                                <input
+                                  type="text"
+                                  value={w.config?.tickers || ""}
+                                  onChange={(e) => handleUpdateConfig(w.id, { ...w.config, tickers: e.target.value })}
+                                  placeholder="BTC-USD,ETH-USD,AAPL"
+                                  className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-3 py-2 text-white text-sm font-mono placeholder-white/20 focus:outline-none transition-colors"
+                                />
+                                <p className="text-[9px] text-white/30 mt-1 leading-tight tracking-wide">Comma-separated ticker symbols.</p>
+                             </div>
+                             <div>
+                                <div className="flex justify-between items-center mb-1">
+                                  <label className="text-[10px] text-white/30 uppercase tracking-widest block">Rotate Every</label>
+                                  <span className="text-[10px] text-cyan-500 font-bold font-mono">{w.config?.interval || 6}S</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="5"
+                                  max="10"
+                                  step="1"
+                                  value={w.config?.interval || 6}
+                                  onChange={(e) => handleUpdateConfig(w.id, { ...w.config, interval: e.target.value })}
+                                  className="w-full h-1 bg-black/60 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                                />
+                             </div>
+                          </div>
+                        );
+                      }
+                      if (w.type === "weather") {
+                        return (
+                          <div className="space-y-4">
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <label className="text-[10px] text-white/30 uppercase tracking-widest">Location Config</label>
+                              </div>
+                              <select
+                                className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-[11px] font-mono focus:outline-none transition-colors mb-2"
+                                value={`${w.config?.lat || "40.7128"},${w.config?.lon || "-74.0060"}`}
+                                onChange={(e) => {
+                                  const [lat, lon] = e.target.value.split(",");
+                                  handleUpdateConfig(w.id, { ...w.config, lat, lon });
+                                }}
+                              >
+                                <option value="40.7128,-74.0060">Custom / Selected</option>
+                                <option value="19.0760,72.8777">Mumbai, IND</option>
+                                <option value="21.1702,72.8311">Surat, IND</option>
+                                <option value="21.1194,73.1166">Bardoli, IND</option>
+                                <option value="22.5726,88.3639">Kolkata, IND</option>
+                              </select>
+                              <div className="flex gap-2">
+                                <input type="text" placeholder="Lat" value={w.config?.lat || "40.7128"} onChange={(e) => handleUpdateConfig(w.id, { ...w.config, lat: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-white text-[10px] font-mono" />
+                                <input type="text" placeholder="Lon" value={w.config?.lon || "-74.0060"} onChange={(e) => handleUpdateConfig(w.id, { ...w.config, lon: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-white text-[10px] font-mono" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Temperature Unit</label>
+                              <select
+                                className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1 text-white text-[11px] font-mono"
+                                value={w.config?.unit || "celsius"}
+                                onChange={(e) => handleUpdateConfig(w.id, { ...w.config, unit: e.target.value })}
+                              >
+                                <option value="celsius">Celsius (°C)</option>
+                                <option value="fahrenheit">Fahrenheit (°F)</option>
+                              </select>
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (w.type === "news") {
+                        return (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">News Providers</label>
+                              <select
+                                multiple
+                                className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1 text-white text-[11px] font-mono focus:outline-none transition-colors h-24"
+                                value={w!.config?.providers ? w!.config.providers.split(',') : ["global","national","local"]}
+                                onChange={(e) => {
+                                  const selected = Array.from(e.target.selectedOptions, option => option.value).join(',');
+                                  handleUpdateConfig(w!.id, { ...w!.config, providers: selected });
+                                }}
+                              >
+                                <option value="global">Global (BBC)</option>
+                                <option value="national">National (US/NYT)</option>
+                                <option value="uk">UK National (BBC)</option>
+                                <option value="local">Local (NY Region)</option>
+                                <option value="tech">Technology</option>
+                                <option value="business">Business</option>
+                              </select>
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (w.type === "project_title") {
+                        return (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Header Text</label>
+                              <input
+                                type="text"
+                                value={w.config?.title || ""}
+                                onChange={(e) => handleUpdateConfig(w.id, { ...w.config, title: e.target.value })}
+                                placeholder="SMART MIRROR OS"
+                                className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (w.type === "clock") {
+                        return (
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest">12-Hour Format</label>
+                              <input
+                                type="checkbox"
+                                checked={w.config?.hour12 || false}
+                                onChange={(e) => handleUpdateConfig(w.id, { ...w.config, hour12: e.target.checked })}
+                                className="accent-cyan-500"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest">Show Date</label>
+                              <input
+                                type="checkbox"
+                                checked={w.config?.showDate !== false}
+                                onChange={(e) => handleUpdateConfig(w.id, { ...w.config, showDate: e.target.checked })}
+                                className="accent-cyan-500"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest">Show Seconds</label>
+                              <input
+                                type="checkbox"
+                                checked={w.config?.showSeconds || false}
+                                onChange={(e) => handleUpdateConfig(w.id, { ...w.config, showSeconds: e.target.checked })}
+                                className="accent-cyan-500"
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+                      return <p className="text-[10px] text-white/50">No settings available for {WIDGET_REGISTRY[w.type]?.label}.</p>;
+                    })()}
+                  </div>
+                ) : (
+                  <>
+                    <div className="bg-black/20 p-4 rounded-xl space-y-4">
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Mirror ID</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. smart-mirror-01"
+                          value={mirrorId}
+                          onChange={(e) => setMirrorId(e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-cyan-500/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Screen Corner</label>
+                        <select
+                          value={alignment}
+                          onChange={(e) => setAlignment(e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-3 py-2 text-white text-[13px] font-mono focus:outline-none transition-colors"
+                        >
+                          <option value="top-left">Top Left</option>
+                          <option value="top-right">Top Right</option>
+                          <option value="bottom-left">Bottom Left</option>
+                          <option value="bottom-right">Bottom Right</option>
+                        </select>
+                      </div>
+                      <button
+                        onClick={handlePublish}
+                        disabled={publishing}
+                        className="w-full bg-cyan-600 text-white font-bold py-3 rounded-lg text-sm uppercase tracking-widest shadow-lg shadow-cyan-500/10"
+                      >
+                        {publishing ? "Publishing..." : "Sync to Mirror"}
+                      </button>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t border-white/5">
+                      <h3 className="text-[11px] text-white/30 font-bold uppercase tracking-widest">Registration</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <input type="text" placeholder="ID" value={regForm.mirrorId} onChange={(e) => setRegForm({...regForm, mirrorId: e.target.value})} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-sm" />
+                        <input type="password" placeholder="PIN" value={regForm.pin} onChange={(e) => setRegForm({...regForm, pin: e.target.value})} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-sm" />
+                      </div>
+                      <button onClick={handleRegisterMirror} disabled={regLoading} className="w-full bg-neutral-800 py-3 rounded text-sm font-bold uppercase">Update Registry</button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
