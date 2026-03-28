@@ -84,10 +84,10 @@ export function NewsWidget({ config }: { config?: any }) {
           key={index} 
           className="animate-headline-snap w-full"
         >
-          <h3 className="text-base font-bold text-white leading-tight tracking-tight mb-2">
+          <h3 className="text-xl font-black text-white leading-tight tracking-tight mb-3">
             {news[index]?.title}
           </h3>
-          <p className="text-xs text-white/50 line-clamp-2 leading-relaxed font-medium">
+          <p className="text-sm text-white/60 line-clamp-3 leading-relaxed font-bold">
             {news[index]?.contentSnippet}
           </p>
         </div>

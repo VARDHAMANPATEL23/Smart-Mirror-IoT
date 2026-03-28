@@ -209,6 +209,7 @@ export default function DisplayBuilder() {
   const [regLoading, setRegLoading] = useState(false);
   const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
   const [alignment, setAlignment] = useState("top-right");
+  const [mobileView, setMobileView] = useState<"preview" | "library" | "settings">("preview");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -316,7 +317,7 @@ export default function DisplayBuilder() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Left: Widget Library */}
-        <aside className="w-[240px] flex-none border-r border-white/10 bg-neutral-900 overflow-y-auto p-4 space-y-3">
+        <aside className="w-[240px] hidden lg:flex flex-none border-r border-white/10 bg-neutral-900 overflow-y-auto p-4 flex-col space-y-3">
           <div className="flex items-center gap-2 mb-4">
             <Layers size={14} className="text-cyan-500" />
             <span className="text-xs font-bold text-white/60 uppercase tracking-widest">Widget Library</span>
@@ -328,13 +329,22 @@ export default function DisplayBuilder() {
         </aside>
 
         {/* Center: WYSIWYG Mirror Preview */}
-        <main className="flex-1 flex flex-col items-center justify-center bg-neutral-950 overflow-hidden p-6">
-          <div className="text-[11px] text-white/30 uppercase tracking-widest mb-3">
-            Mirror Simulator — Drag to reorder, hover to resize / remove
+        <main className="flex-1 flex flex-col items-center justify-center bg-neutral-950 overflow-auto p-4 md:p-6 pb-24 md:pb-6">
+          <div className="text-[10px] md:text-[11px] text-white/30 uppercase tracking-widest mb-3 text-center">
+            Standard 1080p Mirror Simulator
           </div>
 
           {/* Scaled mirror container */}
-          <div style={{ width: scaledW, height: scaledH, position: "relative" }}>
+          <div 
+            style={{ 
+              width: scaledW, 
+              height: scaledH, 
+              minWidth: scaledW,
+              minHeight: scaledH,
+              position: "relative" 
+            }}
+            className="transition-all duration-300 shadow-[0_0_100px_rgba(0,180,255,0.05)]"
+          >
             <div
               style={{
                 width: MIRROR_W,
@@ -342,10 +352,9 @@ export default function DisplayBuilder() {
                 transform: `scale(${mirrorScale})`,
                 transformOrigin: "top left",
               }}
-              className="bg-black border border-white/10 shadow-[0_0_60px_rgba(0,200,255,0.05)] overflow-hidden"
+              className="bg-black border border-white/10 overflow-hidden"
             >
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                {/* Exact same grid as page.tsx */}
                 <div className="p-8 grid grid-cols-2 grid-rows-[repeat(auto-fill,minmax(180px,1fr))] auto-rows-[180px] gap-6 w-full h-full content-start">
                   <SortableContext items={widgets.map((w) => w.id)} strategy={rectSortingStrategy}>
                     {widgets.map((widget) => (
@@ -367,8 +376,8 @@ export default function DisplayBuilder() {
           </div>
         </main>
 
-        {/* Right: Publish Panel */}
-        <aside className="w-[200px] flex-none border-l border-white/10 bg-neutral-900 flex flex-col p-5 gap-6">
+        {/* Right: Publish Panel (Desktop context) */}
+        <aside className="w-[220px] hidden xl:flex flex-none border-l border-white/10 bg-neutral-900 flex-col p-5 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Send size={14} className="text-cyan-500" />
@@ -420,6 +429,27 @@ export default function DisplayBuilder() {
                           className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
                         />
                         <p className="text-[9px] text-white/30 mt-1 leading-tight tracking-wide">Comma-separated ticker symbols.</p>
+                      </div>
+
+                      {/* Rotation Interval Slider */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] text-white/30 uppercase tracking-widest block">Rotate Every</label>
+                          <span className="text-[10px] text-cyan-500 font-bold font-mono">{w.config?.interval || 6}S</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="5"
+                          max="10"
+                          step="1"
+                          value={w.config?.interval || 6}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, interval: e.target.value })}
+                          className="w-full h-1 bg-black/60 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        />
+                        <div className="flex justify-between text-[8px] text-white/20 font-bold mt-1">
+                          <span>5S</span>
+                          <span>10S</span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -626,6 +656,98 @@ export default function DisplayBuilder() {
           </div>
         </aside>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-neutral-900 border-t border-white/10 flex items-center justify-around px-4 z-50">
+        <button 
+          onClick={() => setMobileView("library")}
+          className={`flex flex-col items-center gap-1 ${mobileView === "library" ? "text-cyan-400" : "text-white/40"}`}
+        >
+          <Layers size={20} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Library</span>
+        </button>
+        <button 
+          onClick={() => setMobileView("preview")}
+          className={`flex flex-col items-center gap-1 ${mobileView === "preview" ? "text-cyan-400" : "text-white/40"}`}
+        >
+          <Monitor size={20} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Preview</span>
+        </button>
+        <button 
+          onClick={() => setMobileView("settings")}
+          className={`flex flex-col items-center gap-1 ${mobileView === "settings" ? "text-cyan-400" : "text-white/40"}`}
+        >
+          <Settings size={20} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Config</span>
+        </button>
+      </nav>
+
+      {/* Mobile Modals / Drawers */}
+      {mobileView !== "preview" && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end">
+          <div className="w-full bg-neutral-900 border-t border-cyan-500/20 rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto relative animate-in slide-in-from-bottom duration-300">
+            <button 
+              onClick={() => setMobileView("preview")}
+              className="absolute top-4 right-4 text-white/40 hover:text-white"
+            >
+              <X size={24} />
+            </button>
+            
+            {mobileView === "library" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Layers size={18} className="text-cyan-500" />
+                  <h2 className="text-sm font-bold uppercase tracking-widest">Widget Library</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.keys(WIDGET_REGISTRY).map((type) => (
+                    <WidgetLibraryCard key={type} type={type} onAdd={() => { handleAdd(type); setMobileView("preview"); }} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {mobileView === "settings" && (
+              <div className="space-y-6 pb-20">
+                 <div className="flex items-center gap-2 mb-2">
+                  <Settings size={18} className="text-cyan-500" />
+                  <h2 className="text-sm font-bold uppercase tracking-widest">Mirror Configuration</h2>
+                </div>
+                
+                <div className="bg-black/20 p-4 rounded-xl space-y-4">
+                   <div>
+                    <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Mirror ID</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. smart-mirror-01"
+                      value={mirrorId}
+                      onChange={(e) => setMirrorId(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-cyan-500/50"
+                    />
+                  </div>
+                  <button
+                    onClick={handlePublish}
+                    disabled={publishing}
+                    className="w-full bg-cyan-600 text-white font-bold py-3 rounded-lg text-sm uppercase tracking-widest shadow-lg shadow-cyan-500/10"
+                  >
+                    {publishing ? "Publishing..." : "Sync to Mirror"}
+                  </button>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-white/5">
+                   <h3 className="text-[11px] text-white/30 font-bold uppercase tracking-widest">Registration</h3>
+                   <div className="grid grid-cols-2 gap-3">
+                      <input type="text" placeholder="ID" value={regForm.mirrorId} onChange={(e) => setRegForm({...regForm, mirrorId: e.target.value})} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-sm" />
+                      <input type="password" placeholder="PIN" value={regForm.pin} onChange={(e) => setRegForm({...regForm, pin: e.target.value})} className="bg-black/40 border border-white/10 rounded px-3 py-2 text-sm" />
+                   </div>
+                   <button onClick={handleRegisterMirror} disabled={regLoading} className="w-full bg-neutral-800 py-3 rounded text-sm font-bold uppercase">Update Registry</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

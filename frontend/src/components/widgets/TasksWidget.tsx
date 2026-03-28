@@ -34,7 +34,7 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
 
   useEffect(() => {
     fetchTasks();
-    const interval = setInterval(fetchTasks, 5000); // Refresh every 5 seconds for near-instant sync
+    const interval = setInterval(fetchTasks, 3000); // 3-second pulse
     return () => clearInterval(interval);
   }, [fetchTasks]);
 
@@ -65,6 +65,19 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
     }
   };
 
+  const [pageIndex, setPageIndex] = useState(0);
+  const tasksPerPage = 4;
+  const totalPages = Math.ceil(tasks.length / tasksPerPage);
+
+  // Vertical Page Rotation
+  useEffect(() => {
+    if (totalPages <= 1) return;
+    const interval = setInterval(() => {
+      setPageIndex((p) => (p + 1) % totalPages);
+    }, 7000); // Rotate every 7 seconds
+    return () => clearInterval(interval);
+  }, [totalPages]);
+
   if (loading && tasks.length === 0) return (
     <div className="flex items-center justify-center h-full text-white/20 text-[10px] uppercase tracking-widest animate-pulse">
       Loading Tasks...
@@ -72,18 +85,30 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
   );
 
   return (
-    <div className="flex w-full h-full flex-col px-5 py-3 overflow-hidden bg-black/10 rounded-xl border border-white/5">
+    <div className="flex w-full h-full flex-col px-5 py-3 overflow-hidden bg-black/10 rounded-xl border border-white/5 relative group">
+      <style>{`
+        @keyframes verticalSnap {
+          0% { transform: translateY(20px); opacity: 0; }
+          10% { transform: translateY(0); opacity: 1; }
+          90% { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(-20px); opacity: 0; }
+        }
+        .animate-vertical-snap {
+          animation: verticalSnap 7s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs font-black text-white/40 uppercase tracking-[0.2em]">To-Do List</span>
-        <span className="text-xs text-cyan-500 font-bold font-mono">{tasks.length} {tasks.length === 1 ? 'TASK' : 'TASKS'}</span>
+        <span className="text-xs text-cyan-500 font-bold font-mono">PAGE {pageIndex + 1}/{totalPages || 1}</span>
       </div>
 
-      {/* Task List with Scrolling Animation (only if many tasks) */}
+      {/* Task List with Vertical Snapping */}
       <div className="flex-1 w-full overflow-hidden relative">
-        <div className={`flex flex-col gap-3.5 w-full ${tasks.length > 4 ? "animate-[scroll_20s_linear_infinite]" : ""}`}>
-          {tasks.map((task) => (
-            <div key={task._id} className="flex items-center justify-between group">
+        <div key={pageIndex} className={`flex flex-col gap-3.5 w-full ${totalPages > 1 ? "animate-vertical-snap" : ""}`}>
+          {tasks.slice(pageIndex * tasksPerPage, (pageIndex + 1) * tasksPerPage).map((task) => (
+            <div key={task._id} className="flex items-center justify-between group/item">
               <div className="flex items-center gap-4 truncate">
                 {task.completed ? (
                   <CheckCircle size={20} className="text-cyan-500 shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.3)]" />
@@ -101,28 +126,24 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
               {isBuilder && (
                 <button 
                   onClick={() => deleteTask(task._id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:text-red-400"
+                  className="opacity-0 group-hover/item:opacity-100 transition-opacity p-1.5 hover:text-red-400"
                 >
                   <Trash2 size={16} />
                 </button>
               )}
             </div>
           ))}
-          
-          {/* Duplicate set for seamless scrolling if overhead */}
-          {tasks.length > 4 && tasks.map((task) => (
-            <div key={`dup-${task._id}`} className="flex items-center gap-4">
-               {task.completed ? (
-                  <CheckCircle size={20} className="text-cyan-500 shrink-0" />
-                ) : (
-                  <Circle size={20} className="text-white/30 shrink-0" />
-                )}
-              <span className={`text-base font-bold tracking-tight truncate ${task.completed ? "text-white/20 line-through" : "text-white/90"}`}>
-                {task.text}
-              </span>
-            </div>
-          ))}
         </div>
+      </div>
+
+      {/* Pagination indicators (vertical style) */}
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1.5">
+        {Array.from({ length: totalPages }).map((_, i) => (
+          <div 
+            key={i} 
+            className={`w-1 transition-all duration-500 rounded-full ${i === pageIndex ? "h-6 bg-cyan-500" : "h-1.5 bg-white/10"}`} 
+          />
+        ))}
       </div>
 
       {/* Quick Add Input (Only in Builder mode) */}
@@ -143,3 +164,4 @@ export function TasksWidget({ mirrorId, isBuilder = false }: TasksWidgetProps) {
     </div>
   );
 }
+
