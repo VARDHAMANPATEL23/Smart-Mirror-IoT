@@ -104,35 +104,35 @@ function SortablePreviewWidget({
     >
       {/* Overlay controls — only visible on hover */}
       <div className="absolute inset-0 z-10 rounded-lg border border-transparent group-hover:border-cyan-500/60 transition-all pointer-events-none" />
-      <div className="absolute top-1 right-1 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1 right-1 z-20 flex gap-1 lg:opacity-0 lg:group-hover:opacity-100 opacity-100 transition-opacity">
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing bg-black/70 text-white/60 hover:text-white p-1 rounded"
+          className="cursor-grab active:cursor-grabbing bg-black/80 text-white/70 hover:text-white p-1.5 rounded-lg border border-white/10"
           style={{ pointerEvents: "all" }}
         >
-          <GripVertical size={14} />
+          <GripVertical size={16} className="lg:w-3.5 lg:h-3.5" />
         </button>
         <button
           onClick={() => onToggleSize(id)}
-          className="bg-black/70 text-cyan-400 hover:text-cyan-300 px-1.5 py-0.5 rounded text-[10px] font-bold"
+          className="bg-black/80 text-cyan-400 hover:text-cyan-300 px-2 py-0.5 rounded-lg border border-white/10 text-[11px] font-bold"
           style={{ pointerEvents: "all" }}
         >
           {size}
         </button>
         <button
           onClick={() => onEdit(id)}
-          className="bg-black/70 text-white/50 hover:text-cyan-400 p-1 rounded transition-colors"
+          className="bg-black/80 text-white/60 hover:text-cyan-400 p-1.5 rounded-lg border border-white/10 transition-colors"
           style={{ pointerEvents: "all" }}
         >
-          <Settings size={14} />
+          <Settings size={16} className="lg:w-3.5 lg:h-3.5" />
         </button>
         <button
           onClick={() => onRemove(id)}
-          className="bg-black/70 text-white/50 hover:text-red-400 p-1 rounded"
+          className="bg-black/80 text-white/60 hover:text-red-400 p-1.5 rounded-lg border border-white/10"
           style={{ pointerEvents: "all" }}
         >
-          <X size={14} />
+          <X size={16} className="lg:w-3.5 lg:h-3.5" />
         </button>
       </div>
 
