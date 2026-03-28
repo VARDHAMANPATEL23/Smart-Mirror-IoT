@@ -6,6 +6,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -109,7 +110,7 @@ function SortablePreviewWidget({
           {...attributes}
           {...listeners}
           className="cursor-grab active:cursor-grabbing bg-black/80 text-white/70 hover:text-white p-1.5 rounded-lg border border-white/10"
-          style={{ pointerEvents: "all" }}
+          style={{ pointerEvents: "all", touchAction: "none" }}
         >
           <GripVertical size={16} className="lg:w-3.5 lg:h-3.5" />
         </button>
@@ -212,7 +213,8 @@ export default function DisplayBuilder() {
   const [mobileView, setMobileView] = useState<"preview" | "library" | "settings">("preview");
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
