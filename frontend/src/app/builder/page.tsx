@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   DndContext,
   closestCenter,
@@ -19,7 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X, Monitor, Layers, Send, Link2, Settings, ChevronLeft } from "lucide-react";
+import { GripVertical, X, Monitor, Layers, Send, Link2, Settings, ChevronLeft, Mail, CheckSquare } from "lucide-react";
 import { Widget } from "@/components/dashboard/Widget";
 import { ClockWidget } from "@/components/widgets/ClockWidget";
 import { WeatherWidget } from "@/components/widgets/WeatherWidget";
@@ -27,6 +28,7 @@ import { TasksWidget } from "@/components/widgets/TasksWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
 import { NewsWidget } from "@/components/widgets/NewsWidget";
 import { FinanceWidget } from "@/components/widgets/FinanceWidget";
+import { EmailWidget } from "@/components/widgets/EmailWidget";
 
 // Mirror dimensions — match page.tsx exactly
 const MIRROR_W = 560;
@@ -46,6 +48,7 @@ const WIDGET_REGISTRY: Record<string, { label: string; render: (c?: any, s?: str
   tasks:         { label: "Tasks",         render: () => <TasksWidget isBuilder={true} /> },
   news:          { label: "Latest News",   render: (c) => <NewsWidget config={c} /> },
   finance:       { label: "Markets",       render: (c, s) => <FinanceWidget config={c} size={s} /> },
+  email:         { label: "Email Feed",    render: (c) => <EmailWidget config={c} /> },
 };
 
 const SIZE_CLASSES: Record<string, string> = {
@@ -68,6 +71,7 @@ const DEFAULT_SIZE: Record<string, "1x1" | "2x1" | "2x2"> = {
   tasks: "2x1",
   news: "2x1",
   finance: "1x1",
+  email: "1x1",
 };
 
 const initialLayout: WidgetData[] = [
@@ -307,11 +311,19 @@ export default function DisplayBuilder() {
           <h1 className="text-lg md:text-2xl font-bold tracking-widest text-cyan-400 whitespace-nowrap">DISPLAY BUILDER</h1>
           <p className="hidden md:block text-white/40 text-xs mt-0.5 tracking-wide">WYSIWYG — 1:1 mirror preview</p>
         </div>
-        <div className="hidden sm:flex items-center gap-3 text-xs text-white/30 uppercase tracking-tighter">
+        <div className="flex items-center gap-4">
+          <Link href="/tasks" className="hidden sm:flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white/70 hover:text-white px-4 py-2 rounded-lg border border-white/5 transition-all text-xs font-bold uppercase tracking-widest">
+            TASKS
+          </Link>
+          <Link href="/emails" className="hidden sm:flex items-center gap-2 bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 hover:text-cyan-300 px-4 py-2 rounded-lg border border-cyan-500/20 transition-all text-xs font-bold uppercase tracking-widest shadow-lg shadow-cyan-900/10">
+            EMAILS
+          </Link>
+          <div className="hidden sm:flex items-center gap-3 text-xs text-white/30 uppercase tracking-tighter">
           <Monitor size={14} />
           <span>{MIRROR_W}×{MIRROR_H}</span>
           <span className="text-white/10">|</span>
           <span>{(mirrorScale * 100).toFixed(0)}%</span>
+          </div>
         </div>
       </header>
 
@@ -588,6 +600,42 @@ export default function DisplayBuilder() {
                     </div>
                   );
                 }
+                if (w.type === "email") {
+                  return (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Gmail Address</label>
+                        <input
+                          type="email"
+                          value={w.config?.email || ""}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, email: e.target.value })}
+                          placeholder="example@gmail.com"
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">App Password</label>
+                        <input
+                          type="password"
+                          value={w.config?.password || ""}
+                          onChange={(e) => handleUpdateConfig(w.id, { ...w.config, password: e.target.value })}
+                          placeholder="xxxx xxxx xxxx xxxx"
+                          className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
+                        />
+                        <p className="text-[9px] text-white/30 mt-1 leading-tight tracking-wide">Generate at myaccount.google.com/apppasswords</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          handleUpdateConfig(w.id, { ...w.config, updated_at: Date.now() });
+                          alert("Account set! Be sure to PUBLISH LAYOUT to apply the changes to your mirror.");
+                        }}
+                        className="w-full bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 border border-cyan-500/30 font-bold py-2 rounded text-[10px] tracking-widest uppercase transition-all"
+                      >
+                        SET ACCOUNT
+                      </button>
+                    </div>
+                  );
+                }
                 return <p className="text-[10px] text-white/50">No settings available for {WIDGET_REGISTRY[w.type]?.label}.</p>;
               })()}
             </div>
@@ -660,27 +708,41 @@ export default function DisplayBuilder() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-neutral-900 border-t border-white/10 flex items-center justify-around px-4 z-50">
-        <button 
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-neutral-900/95 backdrop-blur-xl border-t border-white/10 flex items-center justify-around px-2 z-50">
+        <button
           onClick={() => setMobileView("library")}
-          className={`flex flex-col items-center gap-1 ${mobileView === "library" ? "text-cyan-400" : "text-white/40"}`}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors touch-manipulation ${mobileView === "library" ? "text-cyan-400 bg-cyan-500/10" : "text-white/40"}`}
         >
-          <Layers size={20} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Library</span>
+          <Layers size={19} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Library</span>
         </button>
-        <button 
+        <Link
+          href="/tasks"
+          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-white/40 hover:text-white/70 active:text-white transition-colors touch-manipulation"
+        >
+          <CheckSquare size={19} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Tasks</span>
+        </Link>
+        <button
           onClick={() => setMobileView("preview")}
-          className={`flex flex-col items-center gap-1 ${mobileView === "preview" ? "text-cyan-400" : "text-white/40"}`}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors touch-manipulation ${mobileView === "preview" ? "text-cyan-400 bg-cyan-500/10" : "text-white/40"}`}
         >
-          <Monitor size={20} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Preview</span>
+          <Monitor size={19} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Preview</span>
         </button>
-        <button 
-          onClick={() => setMobileView("settings")}
-          className={`flex flex-col items-center gap-1 ${mobileView === "settings" ? "text-cyan-400" : "text-white/40"}`}
+        <Link
+          href="/emails"
+          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-white/40 hover:text-cyan-400 active:text-cyan-500 transition-colors touch-manipulation"
         >
-          <Settings size={20} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Config</span>
+          <Mail size={19} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Emails</span>
+        </Link>
+        <button
+          onClick={() => setMobileView("settings")}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors touch-manipulation ${mobileView === "settings" ? "text-cyan-400 bg-cyan-500/10" : "text-white/40"}`}
+        >
+          <Settings size={19} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Config</span>
         </button>
       </nav>
 
@@ -871,6 +933,42 @@ export default function DisplayBuilder() {
                                 className="accent-cyan-500"
                               />
                             </div>
+                          </div>
+                        );
+                      }
+                      if (w.type === "email") {
+                        return (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">Gmail Address</label>
+                              <input
+                                type="email"
+                                value={w.config?.email || ""}
+                                onChange={(e) => handleUpdateConfig(w.id, { ...w.config, email: e.target.value })}
+                                placeholder="example@gmail.com"
+                                className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">App Password</label>
+                              <input
+                                type="password"
+                                value={w.config?.password || ""}
+                                onChange={(e) => handleUpdateConfig(w.id, { ...w.config, password: e.target.value })}
+                                placeholder="xxxx xxxx xxxx xxxx"
+                                className="w-full bg-black/40 border border-white/10 focus:border-cyan-500 rounded px-2 py-1.5 text-white text-xs font-mono placeholder-white/20 focus:outline-none transition-colors"
+                              />
+                              <p className="text-[9px] text-white/30 mt-1 leading-tight tracking-wide">Generate at myaccount.google.com/apppasswords</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                handleUpdateConfig(w.id, { ...w.config, updated_at: Date.now() });
+                                alert("Account set! Be sure to PUBLISH LAYOUT to apply the changes to your mirror.");
+                              }}
+                              className="w-full bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 border border-cyan-500/30 font-bold py-3 rounded-lg text-xs tracking-widest uppercase transition-all"
+                            >
+                              SET ACCOUNT
+                            </button>
                           </div>
                         );
                       }

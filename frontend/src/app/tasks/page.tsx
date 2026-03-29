@@ -14,6 +14,7 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [newTaskText, setNewTaskText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -27,9 +28,7 @@ export default function TasksPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+  useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
   const addTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +39,7 @@ export default function TasksPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: newTaskText }),
       });
-      if (res.ok) {
-        setNewTaskText("");
-        fetchTasks();
-      }
+      if (res.ok) { setNewTaskText(""); fetchTasks(); }
     } catch (err) {
       console.error("Add Task Error:", err);
     }
@@ -56,104 +52,147 @@ export default function TasksPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, completed: !currentCompleted })
       });
-      
-      // If PUT is not supported, we just visually toggle or do nothing, 
-      // but based on typical REST we assume it works or we delete and recreate.
-      if (res.ok) {
-        fetchTasks();
-      } else {
-        // Fallback: Delete and recreate if PUT isn't implemented
-        console.warn("Update might not be implemented, deleting instead for task rebuild.");
-      }
+      if (res.ok) fetchTasks();
     } catch (err) {
       console.error("Toggle Task Error:", err);
     }
   };
 
   const deleteTask = async (id: string) => {
+    setDeletingId(id);
     try {
       const res = await fetch(`/api/tasks?id=${id}`, { method: "DELETE" });
       if (res.ok) fetchTasks();
     } catch (err) {
       console.error("Delete Task Error:", err);
+    } finally {
+      setDeletingId(null);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-neutral-950 flex justify-center text-white font-sans p-6 md:p-12">
-      <div className="w-full max-w-lg bg-neutral-900 border border-white/10 rounded-2xl shadow-2xl p-6 md:p-10 flex flex-col h-[85vh]">
-        <header className="flex items-center gap-4 mb-8">
-          <Link href="/builder" className="p-2 bg-black/40 hover:bg-black/60 rounded-full transition text-cyan-500">
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold tracking-widest text-white uppercase">Task Manager</h1>
-            <p className="text-white/40 text-xs mt-1 tracking-wide">Syncs live to Smart Mirror Displays</p>
-          </div>
-        </header>
+  const pending = tasks.filter(t => !t.completed);
+  const completed = tasks.filter(t => t.completed);
 
-        <form onSubmit={addTask} className="mb-8 flex gap-3">
-          <input 
+  return (
+    <div className="min-h-screen bg-neutral-950 text-white font-sans flex flex-col">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-20 bg-neutral-950/90 backdrop-blur-xl border-b border-white/5 px-4 py-3 flex items-center gap-3">
+        <Link href="/builder" className="p-2 bg-white/5 hover:bg-white/10 active:bg-white/20 rounded-xl transition text-cyan-400 touch-manipulation">
+          <ArrowLeft size={20} />
+        </Link>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-base font-black tracking-widest text-white uppercase leading-none">TASK MANAGER</h1>
+          <p className="text-white/30 text-[10px] uppercase font-bold tracking-[0.15em] mt-0.5">Syncs live to mirror</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-black text-white/20 bg-white/5 px-2.5 py-1 rounded-full uppercase tracking-widest">
+            {pending.length} left
+          </span>
+        </div>
+      </header>
+
+      {/* Add Task Input — sticky above keyboard on mobile */}
+      <div className="sticky top-[57px] z-10 bg-neutral-950/95 backdrop-blur-xl border-b border-white/5 px-4 py-3">
+        <form onSubmit={addTask} className="flex gap-2">
+          <input
             type="text"
             placeholder="Add a new task..."
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
-            className="flex-1 bg-black/50 border border-white/10 focus:border-cyan-500 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all shadow-inner"
+            // 16px font prevents iOS auto-zoom on focus
+            className="flex-1 bg-black/60 border border-white/10 focus:border-cyan-500 rounded-xl px-4 py-3 text-base text-white placeholder-white/25 outline-none transition-all"
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={!newTaskText.trim()}
-            className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-cyan-900/50"
+            className="bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 disabled:opacity-30 text-white px-4 rounded-xl font-black flex items-center gap-1.5 transition-colors touch-manipulation whitespace-nowrap"
           >
-            <Plus size={18} /> Add
+            <Plus size={18} />
           </button>
         </form>
-
-        <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-          {loading ? (
-            <div className="flex justify-center py-10">
-              <span className="animate-pulse text-cyan-500/50 text-xs tracking-[0.2em] font-bold">LOADING TASKS...</span>
-            </div>
-          ) : tasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center">
-              <CheckCircle size={48} className="mb-4" />
-              <p className="text-sm tracking-wide">All caught up! No tasks pending.</p>
-            </div>
-          ) : (
-            tasks.map(task => (
-              <div 
-                key={task._id} 
-                className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${
-                  task.completed 
-                    ? "bg-black/20 border-white/5 opacity-50" 
-                    : "bg-black/40 border-white/10 hover:border-cyan-500/30 hover:bg-black/60 shadow-sm"
-                }`}
-              >
-                <div 
-                  className="flex items-center gap-4 cursor-pointer flex-1 overflow-hidden"
-                  onClick={() => toggleTask(task._id, task.completed)}
-                >
-                  {task.completed ? (
-                    <CheckCircle size={20} className="text-cyan-500 shrink-0" />
-                  ) : (
-                    <Circle size={20} className="text-white/30 shrink-0" />
-                  )}
-                  <span className={`text-sm truncate w-full ${task.completed ? "line-through text-white/50" : "text-white/90"}`}>
-                    {task.text}
-                  </span>
-                </div>
-                
-                <button 
-                  onClick={() => deleteTask(task._id)}
-                  className="ml-4 p-2 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
       </div>
+
+      {/* Task List */}
+      <main className="flex-1 px-4 py-4 max-w-2xl w-full mx-auto space-y-6 pb-24">
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <span className="animate-pulse text-cyan-500/40 text-[11px] tracking-[0.2em] font-black uppercase">Loading Tasks...</span>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 opacity-25 text-center gap-3">
+            <CheckCircle size={52} strokeWidth={1.5} />
+            <p className="text-sm uppercase tracking-widest font-black">All clear!</p>
+            <p className="text-xs text-white/50">No pending tasks.</p>
+          </div>
+        ) : (
+          <>
+            {/* Pending */}
+            {pending.length > 0 && (
+              <section className="space-y-2">
+                <p className="text-[9px] uppercase tracking-[0.25em] font-black text-white/20 px-1 mb-3">Pending</p>
+                {pending.map(task => (
+                  <TaskRow key={task._id} task={task} onToggle={toggleTask} onDelete={deleteTask} deleting={deletingId === task._id} />
+                ))}
+              </section>
+            )}
+
+            {/* Completed */}
+            {completed.length > 0 && (
+              <section className="space-y-2">
+                <p className="text-[9px] uppercase tracking-[0.25em] font-black text-white/20 px-1 mb-3">Completed</p>
+                {completed.map(task => (
+                  <TaskRow key={task._id} task={task} onToggle={toggleTask} onDelete={deleteTask} deleting={deletingId === task._id} />
+                ))}
+              </section>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function TaskRow({ task, onToggle, onDelete, deleting }: {
+  task: TaskItem;
+  onToggle: (id: string, completed: boolean) => void;
+  onDelete: (id: string) => void;
+  deleting: boolean;
+}) {
+  return (
+    <div className={`flex items-center gap-3 p-4 rounded-2xl border transition-all duration-200 ${
+      task.completed
+        ? "bg-black/20 border-white/5 opacity-50"
+        : "bg-black/40 border-white/8 active:bg-black/60"
+    }`}>
+      {/* Toggle — large touch target */}
+      <button
+        onClick={() => onToggle(task._id, task.completed)}
+        className="p-1 shrink-0 touch-manipulation"
+        aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
+      >
+        {task.completed
+          ? <CheckCircle size={22} className="text-cyan-500" />
+          : <Circle size={22} className="text-white/25" />
+        }
+      </button>
+
+      {/* Text */}
+      <span
+        onClick={() => onToggle(task._id, task.completed)}
+        className={`flex-1 text-sm leading-snug cursor-pointer touch-manipulation ${task.completed ? "line-through text-white/40" : "text-white/90"}`}
+      >
+        {task.text}
+      </span>
+
+      {/* Delete */}
+      <button
+        onClick={() => onDelete(task._id)}
+        disabled={deleting}
+        className="p-2 text-white/15 hover:text-red-400 active:text-red-500 rounded-xl transition-colors touch-manipulation"
+        aria-label="Delete task"
+      >
+        <Trash2 size={17} className={deleting ? "animate-pulse" : ""} />
+      </button>
     </div>
   );
 }

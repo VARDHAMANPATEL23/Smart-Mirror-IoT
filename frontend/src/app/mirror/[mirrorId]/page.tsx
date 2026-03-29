@@ -9,6 +9,7 @@ import { TasksWidget } from "@/components/widgets/TasksWidget";
 import { ProjectTitleWidget } from "@/components/widgets/ProjectTitleWidget";
 import { NewsWidget } from "@/components/widgets/NewsWidget";
 import { FinanceWidget } from "@/components/widgets/FinanceWidget";
+import { EmailWidget } from "@/components/widgets/EmailWidget";
 
 interface WidgetData {
   id: string;
@@ -37,10 +38,8 @@ export default function MirrorDisplay() {
     weather:       (config?: any, size?: string) => <WeatherWidget config={config} />,
     tasks:         (config?: any, size?: string) => <TasksWidget mirrorId={mirrorId} />,
     news:          (config?: any, size?: string) => <NewsWidget config={config} />,
-    finance:       (config?: any, size?: string) => {
-      const Comp = FinanceWidget as any;
-      return <Comp config={config} size={size} />;
-    },
+    finance:       (config?: any, size?: string) => <FinanceWidget config={config} size={size} />,
+    email:         (config?: any, size?: string) => <EmailWidget config={config} mirrorId={mirrorId} />,
   }), [mirrorId]);
 
   useEffect(() => {
